@@ -842,6 +842,12 @@
             }
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GradeGuard">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
 </head>
 
 <body>
@@ -1610,6 +1616,13 @@
                     '<button class="btn btn-danger" onclick="openDeleteModal(' + i + ')"><i class="fa-solid fa-trash"></i> Delete</button>' +
                     '</div></div></div>';
             }).join('');
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/service-worker.js');
+            });
         }
     </script>
 </body>
