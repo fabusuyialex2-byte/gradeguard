@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" dir="ltr">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -7,12 +7,6 @@
     <title>GradeGuard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f766e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GradeGuard">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
         :root[data-theme="dark"] {
             --bg: #0f172a;
@@ -30,6 +24,7 @@
             --green: #22c55e;
             --red: #ef4444;
             --gold: #f59e0b;
+            --purple: #a78bfa;
         }
 
         :root[data-theme="light"] {
@@ -48,6 +43,7 @@
             --green: #16a34a;
             --red: #dc2626;
             --gold: #d97706;
+            --purple: #7c3aed;
         }
 
         * {
@@ -66,7 +62,7 @@
 
         header {
             background: var(--header);
-            padding: 14px 32px;
+            padding: 16px 40px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -74,70 +70,59 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .header-logo {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             color: white;
-            flex-shrink: 0;
         }
 
         header h1 {
-            font-size: 20px;
+            font-size: 22px;
             color: #fff;
             font-weight: 700;
         }
 
         header p {
             color: #94d2bd;
-            font-size: 11px;
+            font-size: 12px;
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .header-badge {
-            background: rgba(255, 255, 255, 0.12);
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 12px;
+            cursor: pointer;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            white-space: nowrap;
+            gap: 6px;
         }
 
-        .header-badge:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .container {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 24px 20px;
+            padding: 30px 20px;
         }
 
         .tabs {
@@ -152,7 +137,7 @@
 
         .tab {
             flex: 1;
-            padding: 10px 6px;
+            padding: 10px 8px;
             border: none;
             border-radius: 10px;
             background: transparent;
@@ -164,7 +149,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
+        }
+
+        .tab i {
+            font-size: 13px;
         }
 
         .tab.active {
@@ -183,7 +172,7 @@
         .welcome-banner {
             background: var(--card);
             border-radius: 12px;
-            padding: 14px 20px;
+            padding: 16px 22px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
             display: none;
@@ -196,51 +185,6 @@
 
         .welcome-banner.show {
             display: flex;
-        }
-
-        .setup-banner {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(2, 132, 199, 0.08));
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .setup-banner .info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .setup-banner h4 {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .setup-banner p {
-            font-size: 12px;
-            color: var(--text2);
-            margin-top: 3px;
-        }
-
-        .setup-btn {
-            padding: 10px 20px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .stats-grid {
@@ -258,7 +202,7 @@
             border: 1px solid var(--border);
         }
 
-        .stat-icon {
+        .stat-card .stat-icon {
             width: 40px;
             height: 40px;
             border-radius: 10px;
@@ -270,7 +214,7 @@
         }
 
         .stat-card .value {
-            font-size: 30px;
+            font-size: 32px;
             font-weight: 700;
             color: var(--accent);
         }
@@ -303,10 +247,8 @@
             background: var(--bg3);
             border-radius: 99px;
             margin-bottom: 8px;
-            position: relative;
         }
 
-        /* FIXED: gradient now goes red(left/fail) to green(right/best) */
         .progress-fill {
             height: 100%;
             border-radius: 99px;
@@ -317,7 +259,7 @@
         .progress-labels {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text3);
         }
 
@@ -328,7 +270,7 @@
             margin-bottom: 20px;
             font-size: 14px;
             border-left: 5px solid var(--red);
-            background: rgba(239, 68, 68, 0.08);
+            background: rgba(239, 68, 68, 0.1);
             align-items: center;
             gap: 10px;
         }
@@ -339,7 +281,7 @@
 
         .risk-banner.good {
             border-left-color: var(--green);
-            background: rgba(34, 197, 94, 0.08);
+            background: rgba(34, 197, 94, 0.1);
         }
 
         .main-grid {
@@ -367,7 +309,7 @@
             margin-bottom: 18px;
         }
 
-        .icon-circle {
+        .card-title .icon-circle {
             width: 32px;
             height: 32px;
             border-radius: 8px;
@@ -375,7 +317,6 @@
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            flex-shrink: 0;
         }
 
         .card-title h2 {
@@ -439,12 +380,17 @@
         }
 
         .btn-remove {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.12);
             border: 1px solid rgba(239, 68, 68, 0.2);
             color: var(--red);
             border-radius: 8px;
             padding: 8px 10px;
             cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.25);
         }
 
         .course-header {
@@ -452,6 +398,7 @@
             grid-template-columns: 2fr 1fr 1fr auto;
             gap: 6px;
             margin-bottom: 4px;
+            padding: 0 2px;
         }
 
         .course-header span {
@@ -479,6 +426,10 @@
         .btn:hover {
             opacity: 0.88;
             transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
@@ -548,13 +499,14 @@
             color: var(--text);
             font-weight: 600;
             font-size: 14px;
-            width: 180px;
+            width: 200px;
             cursor: pointer;
         }
 
         .sem-name-input:focus {
             outline: none;
             border-bottom: 1px solid var(--accent);
+            cursor: text;
         }
 
         .sem-info {
@@ -635,40 +587,40 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 3px 8px;
+            width: 28px;
+            height: 28px;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            white-space: nowrap;
         }
 
-        .grade-top {
+        .grade-A {
             background: rgba(34, 197, 94, 0.15);
             color: #22c55e;
         }
 
-        .grade-high {
+        .grade-B {
             background: rgba(56, 189, 248, 0.15);
             color: #38bdf8;
         }
 
-        .grade-mid {
+        .grade-C {
             background: rgba(245, 158, 11, 0.15);
             color: #f59e0b;
         }
 
-        .grade-low {
+        .grade-D {
             background: rgba(249, 115, 22, 0.15);
             color: #f97316;
         }
 
-        .grade-poor {
+        .grade-E {
             background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
         }
 
-        .grade-fail {
-            background: rgba(127, 29, 29, 0.2);
+        .grade-F {
+            background: rgba(127, 29, 29, 0.25);
             color: #fca5a5;
         }
 
@@ -681,6 +633,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             text-align: center;
+            font-size: 12px;
         }
 
         .bs-label {
@@ -691,7 +644,7 @@
         .bs-val {
             font-weight: 700;
             color: var(--text);
-            font-size: 14px;
+            font-size: 15px;
             margin-top: 2px;
         }
 
@@ -720,6 +673,7 @@
 
         .weak-item-name {
             font-weight: 600;
+            color: var(--text);
         }
 
         .weak-item-info {
@@ -747,59 +701,27 @@
             margin-bottom: 16px;
         }
 
-        .grading-ref {
-            background: var(--bg3);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-        }
-
-        .grading-ref-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text2);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .grading-ref-row {
+        .grading-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: repeat(6, 1fr);
             gap: 8px;
-            align-items: center;
+            text-align: center;
+        }
+
+        .grading-item {
             background: var(--bg2);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            margin-bottom: 4px;
+            border-radius: 10px;
+            padding: 10px 4px;
         }
 
-        .grading-ref-row .gr-grade {
-            font-weight: 700;
-        }
-
-        .grading-ref-row .gr-range {
-            color: var(--text3);
-        }
-
-        .grading-ref-row .gr-pts {
-            color: var(--accent);
-            font-weight: 700;
-        }
-
-        /* ── MODAL ── */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.65);
             z-index: 100;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(4px);
         }
 
         .modal-overlay.show {
@@ -808,186 +730,35 @@
 
         .modal {
             background: var(--card);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 28px;
-            width: 100%;
-            max-width: 460px;
+            width: 90%;
+            max-width: 420px;
             border: 1px solid var(--border);
-            max-height: 90vh;
-            overflow-y: auto;
         }
 
-        .modal-wide {
-            max-width: 680px;
+        .modal-icon {
+            font-size: 32px;
+            color: var(--red);
+            margin-bottom: 12px;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .modal-header h3 {
+        .modal h3 {
+            color: var(--text);
+            margin-bottom: 8px;
             font-size: 18px;
-            font-weight: 800;
         }
 
-        .modal-header p {
-            font-size: 13px;
+        .modal p {
             color: var(--text2);
-            margin-top: 3px;
-        }
-
-        .modal-close {
-            background: var(--bg3);
-            border: none;
-            color: var(--text2);
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
+            margin-bottom: 20px;
             font-size: 14px;
-            flex-shrink: 0;
         }
 
         .modal-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-        }
-
-        /* ── SETUP WIZARD ── */
-        .wizard-steps {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .wizard-step {
-            flex: 1;
-            height: 4px;
-            border-radius: 99px;
-            background: var(--border);
-            transition: background 0.3s;
-        }
-
-        .wizard-step.done {
-            background: var(--accent);
-        }
-
-        .wizard-step.active {
-            background: var(--gold);
-        }
-
-        /* ── LANGUAGE GRID ── */
-        .lang-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .lang-option {
-            padding: 14px 16px;
-            background: var(--bg3);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .lang-option:hover {
-            border-color: var(--accent);
-        }
-
-        .lang-option.selected {
-            border-color: var(--accent);
-            background: rgba(56, 189, 248, 0.1);
-        }
-
-        .lang-option .lang-flag {
-            font-size: 24px;
-        }
-
-        .lang-option .lang-name {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .lang-option .lang-native {
-            font-size: 12px;
-            color: var(--text3);
-        }
-
-        /* ── CONTINENT/COUNTRY GRID ── */
-        .continent-tabs {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-
-        .continent-tab {
-            padding: 6px 14px;
-            border-radius: 99px;
-            border: 1px solid var(--border);
-            background: var(--bg3);
-            color: var(--text2);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .continent-tab.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .country-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            max-height: 320px;
-            overflow-y: auto;
-        }
-
-        .country-option {
-            padding: 12px 14px;
-            background: var(--bg3);
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .country-option:hover {
-            border-color: var(--accent);
-        }
-
-        .country-option.selected {
-            border-color: var(--accent);
-            background: rgba(56, 189, 248, 0.1);
-        }
-
-        .country-option .c-flag {
-            font-size: 20px;
-        }
-
-        .country-option .c-name {
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .country-option .c-sys {
-            font-size: 11px;
-            color: var(--text3);
         }
 
         @media print {
@@ -1058,29 +829,17 @@
                 grid-template-columns: 1fr 1fr;
             }
 
-            .lang-grid,
-            .country-grid {
-                grid-template-columns: 1fr;
+            .grading-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
 
             header {
-                padding: 12px 16px;
+                padding: 14px 20px;
             }
 
             .tab span {
                 display: none;
             }
-        }
-
-        /* RTL support for Arabic */
-        [dir="rtl"] .breakdown-table th,
-        [dir="rtl"] .breakdown-table td {
-            text-align: right;
-        }
-
-        [dir="rtl"] .risk-banner,
-        [dir="rtl"] .welcome-banner {
-            flex-direction: row-reverse;
         }
     </style>
 </head>
@@ -1092,21 +851,13 @@
             <div class="header-logo"><i class="fa-solid fa-shield-halved"></i></div>
             <div>
                 <h1>GradeGuard</h1>
-                <p id="hdrTagline">Smart Academic Performance Tracker</p>
+                <p>Smart Academic Performance Tracker</p>
             </div>
         </div>
-        <div class="header-right">
-            <button class="header-badge" onclick="openSetup()" id="countryBadge">
-                <i class="fa-solid fa-globe"></i>
-                <span id="countryBadgeText">Setup</span>
-            </button>
-            <button class="header-badge" onclick="openLangModal()" id="langBadge">
-                <i class="fa-solid fa-language"></i>
-                <span id="langBadgeText">EN</span>
-            </button>
-            <button class="header-badge" id="themeBtn" onclick="toggleTheme()">
-                <i class="fa-solid fa-sun"></i>
-                <span id="themeBtnText">Light</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:11px;color:#94d2bd;">Nigerian 5.0 Scale</div>
+            <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">
+                <i class="fa-solid fa-sun"></i><span>Light Mode</span>
             </button>
         </div>
     </header>
@@ -1115,16 +866,16 @@
 
         <div class="tabs">
             <button class="tab active" id="tab-dashboard" onclick="switchTab('dashboard',this)">
-                <i class="fa-solid fa-chart-line"></i><span id="t-dashboard">Dashboard</span>
+                <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
             </button>
             <button class="tab" id="tab-add" onclick="switchTab('add',this)">
-                <i class="fa-solid fa-plus"></i><span id="t-add">Add Semester</span>
+                <i class="fa-solid fa-plus"></i><span>Add Semester</span>
             </button>
             <button class="tab" id="tab-calculator" onclick="switchTab('calculator',this)">
-                <i class="fa-solid fa-calculator"></i><span id="t-calc">Calculator</span>
+                <i class="fa-solid fa-calculator"></i><span>Calculator</span>
             </button>
             <button class="tab" id="tab-profile" onclick="switchTab('profile',this)">
-                <i class="fa-solid fa-user"></i><span id="t-profile">My Profile</span>
+                <i class="fa-solid fa-user"></i><span>My Profile</span>
             </button>
         </div>
 
@@ -1136,62 +887,51 @@
                 <span id="welcomeText"></span>
             </div>
 
-            <div class="setup-banner" id="setupBanner" style="display:none;">
-                <div class="info">
-                    <i class="fa-solid fa-globe" style="font-size:24px;color:var(--accent);flex-shrink:0;"></i>
-                    <div>
-                        <h4 id="sb-title">Set Up GradeGuard</h4>
-                        <p id="sb-desc">Choose your language and country to personalise your experience</p>
-                    </div>
-                </div>
-                <button class="setup-btn" onclick="openSetup()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span id="sb-btn">Get Started</span>
-                </button>
-            </div>
-
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon" style="background:rgba(56,189,248,0.12);color:var(--accent);">
                         <i class="fa-solid fa-star"></i>
                     </div>
                     <div class="value" id="cgpaDisplay">—</div>
-                    <div class="label" id="cgpaLabel">Current GPA</div>
+                    <div class="label">Current CGPA</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <div class="value" id="semesterCount" style="color:#a78bfa;">0</div>
-                    <div class="label" id="semLabel">Semesters</div>
+                    <div class="label">Semesters</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
                     <div class="value" id="bestGPA" style="color:#22c55e;">—</div>
-                    <div class="label" id="bestLabel">Best GPA</div>
+                    <div class="label">Best GPA</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
                         <i class="fa-solid fa-book"></i>
                     </div>
                     <div class="value" id="totalCoursesCount" style="color:#f59e0b;">0</div>
-                    <div class="label" id="coursesLabel">Total Courses</div>
+                    <div class="label">Total Courses</div>
                 </div>
             </div>
 
             <div class="standing-card">
-                <h3><i class="fa-solid fa-ranking-star"></i> <span id="standingTitle">Class Standing Progress</span>
+                <h3>
+                    <i class="fa-solid fa-ranking-star"></i> Class Standing Progress
                 </h3>
                 <div class="progress-track">
                     <div class="progress-fill" id="progressFill" style="width:0%"></div>
                 </div>
-                <!-- Labels: Fail on left, Best on right -->
-                <div class="progress-labels" id="progressLabels">
-                    <span id="pl-fail">Fail — 0</span>
-                    <span>→</span>
-                    <span id="pl-best">Best</span>
+                <div class="progress-labels">
+                    <span>0.0</span>
+                    <span>1.0 — Pass</span>
+                    <span>1.5 — 3rd Class</span>
+                    <span>2.5 — 2nd Lower</span>
+                    <span>3.5 — 2nd Upper</span>
+                    <span>4.5 — 1st Class</span>
                 </div>
                 <div id="standingBadge" style="margin-top:12px;font-size:14px;color:var(--text2);"></div>
             </div>
@@ -1204,7 +944,7 @@
                         <div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);">
                             <i class="fa-solid fa-chart-area"></i>
                         </div>
-                        <h2 id="trendTitle">GPA Trend</h2>
+                        <h2>GPA Trend</h2>
                     </div>
                     <div class="chart-container">
                         <canvas id="gpaChart"></canvas>
@@ -1212,23 +952,24 @@
                     <div id="noChartMsg" style="text-align:center;color:var(--text3);font-size:13px;padding:20px;">
                         <i class="fa-solid fa-chart-line"
                             style="font-size:28px;margin-bottom:8px;display:block;opacity:0.3;"></i>
-                        <span id="noChartTxt">Add at least 2 semesters to see your trend</span>
+                        Add at least 2 semesters to see your trend
                     </div>
                 </div>
+
                 <div class="card">
                     <div class="card-title">
                         <div class="icon-circle" style="background:rgba(239,68,68,0.12);color:var(--red);">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <h2 id="weakTitle">Weak Course Detector</h2>
+                        <h2>Weak Course Detector</h2>
                     </div>
-                    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;" id="weakDesc">
-                        Courses with low grades dragging your GPA down:
+                    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">
+                        Courses graded E or F dragging your GPA down:
                     </p>
                     <div id="weakCoursesList">
                         <div class="empty-state">
                             <i class="fa-solid fa-circle-check" style="color:var(--green);opacity:1;"></i>
-                            <span id="noWeakTxt">No weak courses! All courses are passing.</span>
+                            No weak courses!<br>All courses are passing.
                         </div>
                     </div>
                 </div>
@@ -1240,17 +981,20 @@
                         <div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                         </div>
-                        <h2 id="historyTitle">Semester History</h2>
+                        <h2>Semester History
+                            <span style="font-size:11px;color:var(--text3);font-weight:400;">— tap to expand &amp;
+                                edit</span>
+                        </h2>
                     </div>
                     <button class="btn btn-purple" style="width:auto;padding:8px 16px;margin:0;font-size:13px;"
                         onclick="window.print()">
-                        <i class="fa-solid fa-print"></i> <span id="printBtn">Print</span>
+                        <i class="fa-solid fa-print"></i> Print
                     </button>
                 </div>
                 <div id="historyList">
                     <div class="empty-state">
                         <i class="fa-solid fa-folder-open"></i>
-                        <span id="noHistoryTxt">No semesters yet. Go to Add Semester!</span>
+                        No semesters yet. Go to Add Semester!
                     </div>
                 </div>
             </div>
@@ -1263,32 +1007,24 @@
                     <div class="icon-circle" style="background:rgba(34,197,94,0.12);color:var(--green);">
                         <i class="fa-solid fa-plus"></i>
                     </div>
-                    <h2 id="addTitle">Add New Semester</h2>
-                </div>
-                <div id="noCountryWarn"
-                    style="display:none;background:rgba(245,158,11,0.08);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--gold);">
-                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
-                    <span id="noCountryWarnTxt">Please select your country first for accurate grading!</span>
-                    <button onclick="openSetup()"
-                        style="background:var(--gold);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-left:8px;"
-                        id="noCountryWarnBtn">Setup</button>
+                    <h2>Add New Semester</h2>
                 </div>
                 <div class="form-group">
-                    <label id="semNameLabel">Semester Name</label>
+                    <label><i class="fa-solid fa-tag" style="margin-right:5px;"></i>Semester Name</label>
                     <input type="text" id="semesterName" placeholder="e.g. 200L First Semester">
                 </div>
                 <div class="course-header">
-                    <span id="colCourse">Course Name</span>
-                    <span id="colUnits">Units</span>
-                    <span id="colGrade">Grade</span>
+                    <span><i class="fa-solid fa-book-open" style="margin-right:4px;"></i>Course Name</span>
+                    <span><i class="fa-solid fa-hashtag" style="margin-right:4px;"></i>Units</span>
+                    <span><i class="fa-solid fa-graduation-cap" style="margin-right:4px;"></i>Grade</span>
                     <span></span>
                 </div>
                 <div id="coursesList"></div>
                 <button class="btn btn-secondary" onclick="addCourseRow()" style="margin-top:6px;">
-                    <i class="fa-solid fa-plus"></i> <span id="addCourseBtn">Add Course</span>
+                    <i class="fa-solid fa-plus"></i> Add Course
                 </button>
                 <button class="btn btn-primary" onclick="saveSemester()">
-                    <i class="fa-solid fa-floppy-disk"></i> <span id="saveSemBtn">Save Semester</span>
+                    <i class="fa-solid fa-floppy-disk"></i> Save Semester
                 </button>
             </div>
         </div>
@@ -1300,42 +1036,78 @@
                     <div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);">
                         <i class="fa-solid fa-calculator"></i>
                     </div>
-                    <h2 id="calcTitle">Target GPA Calculator</h2>
+                    <h2>Target GPA Calculator</h2>
                 </div>
-                <p style="font-size:13px;color:var(--text2);margin-bottom:20px;" id="calcDesc">
-                    Fill in your details to find out what GPA you need per semester to graduate with your dream class.
+                <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">
+                    Fill in your details and we will tell you exactly what GPA you need per semester to graduate with
+                    your dream class.
                 </p>
                 <div class="form-row">
                     <div class="form-group">
-                        <label id="curGPALabel">Your Current GPA</label>
-                        <input type="number" id="currentCGPA" placeholder="e.g. 3.85" step="0.01" min="0">
+                        <label><i class="fa-solid fa-chart-simple" style="margin-right:5px;"></i>Your Current
+                            CGPA</label>
+                        <input type="number" id="currentCGPA" placeholder="e.g. 3.85" step="0.01" min="0" max="5">
                     </div>
                     <div class="form-group">
-                        <label id="curSemLabel">Current Semester Number</label>
+                        <label><i class="fa-solid fa-calendar" style="margin-right:5px;"></i>Current Semester
+                            Number</label>
                         <input type="number" id="currentSem" placeholder="e.g. 3" min="1">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label id="targetLabel">Target GPA at Graduation</label>
-                        <input type="number" id="targetGPA" placeholder="e.g. 4.50" step="0.01" min="0">
+                        <label><i class="fa-solid fa-bullseye" style="margin-right:5px;"></i>Target CGPA at
+                            Graduation</label>
+                        <input type="number" id="targetGPA" placeholder="e.g. 4.50" step="0.01" min="0" max="5">
                     </div>
                     <div class="form-group">
-                        <label id="totalSemLabel">Total Semesters in Program</label>
-                        <input type="number" id="totalSem" placeholder="e.g. 8" min="1">
+                        <label><i class="fa-solid fa-list-ol" style="margin-right:5px;"></i>Total Semesters in
+                            Program</label>
+                        <input type="number" id="totalSem" placeholder="e.g. 8 for 4-year course" min="1">
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="calculateTarget()">
-                    <i class="fa-solid fa-magnifying-glass-chart"></i> <span id="calcBtn">Calculate What I Need</span>
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Calculate What I Need
                 </button>
                 <div class="target-result" id="targetResult"></div>
 
-                <div class="grading-ref" id="gradingRef">
-                    <div class="grading-ref-title">
-                        <i class="fa-solid fa-table" style="color:var(--accent);"></i>
-                        <span id="gradingRefTitle">Grading Scale Reference</span>
+                <div style="margin-top:24px;background:var(--bg3);border-radius:12px;padding:16px;">
+                    <div
+                        style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-table" style="color:var(--accent);"></i> Nigerian Grading Scale Reference
                     </div>
-                    <div id="gradingRefGrid"></div>
+                    <div class="grading-grid">
+                        <div class="grading-item">
+                            <div class="grade-badge grade-A" style="margin:0 auto 8px;">A</div>
+                            <div style="font-size:10px;color:var(--text3);">70–100%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">5.0</div>
+                        </div>
+                        <div class="grading-item">
+                            <div class="grade-badge grade-B" style="margin:0 auto 8px;">B</div>
+                            <div style="font-size:10px;color:var(--text3);">60–69%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">4.0</div>
+                        </div>
+                        <div class="grading-item">
+                            <div class="grade-badge grade-C" style="margin:0 auto 8px;">C</div>
+                            <div style="font-size:10px;color:var(--text3);">50–59%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">3.0</div>
+                        </div>
+                        <div class="grading-item">
+                            <div class="grade-badge grade-D" style="margin:0 auto 8px;">D</div>
+                            <div style="font-size:10px;color:var(--text3);">45–49%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">2.0</div>
+                        </div>
+                        <div class="grading-item">
+                            <div class="grade-badge grade-E" style="margin:0 auto 8px;">E</div>
+                            <div style="font-size:10px;color:var(--text3);">40–44%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">1.0</div>
+                        </div>
+                        <div class="grading-item">
+                            <div class="grade-badge grade-F" style="margin:0 auto 8px;">F</div>
+                            <div style="font-size:10px;color:var(--text3);">Below 40%</div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">0.0</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1347,1149 +1119,117 @@
                     <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
                     <div>
                         <div style="font-size:20px;font-weight:700;" id="profileNameDisplay">Your Name</div>
-                        <div style="font-size:13px;color:var(--text2);" id="profileSubDisplay" data-i18n="profileSetup">
-                            Set up your profile below</div>
+                        <div style="font-size:13px;color:var(--text2);" id="profileSubDisplay">Set up your profile below
+                        </div>
                     </div>
                 </div>
                 <div class="profile-grid">
                     <div class="form-group">
-                        <label id="pNameLabel">Full Name</label>
-                        <input type="text" id="profileName" placeholder="e.g. Joshua Alex">
+                        <label><i class="fa-solid fa-user" style="margin-right:5px;"></i>Full Name</label>
+                        <input type="text" id="profileName" placeholder="e.g. Fabusuyi Joshua Alex">
                     </div>
                     <div class="form-group">
-                        <label id="pMatricLabel">Student ID / Matric</label>
+                        <label><i class="fa-solid fa-id-card" style="margin-right:5px;"></i>Matric Number</label>
                         <input type="text" id="profileMatric" placeholder="e.g. LCU/UG/23/26597">
                     </div>
                     <div class="form-group">
-                        <label id="pDeptLabel">Department / Major</label>
+                        <label><i class="fa-solid fa-building-columns" style="margin-right:5px;"></i>Department</label>
                         <input type="text" id="profileDept" placeholder="e.g. Cybersecurity">
                     </div>
                     <div class="form-group">
-                        <label id="pFacultyLabel">Faculty / School</label>
-                        <input type="text" id="profileFaculty" placeholder="e.g. Computing">
+                        <label><i class="fa-solid fa-school" style="margin-right:5px;"></i>Faculty</label>
+                        <input type="text" id="profileFaculty" placeholder="e.g. Computing &amp; Applied Sciences">
                     </div>
                     <div class="form-group">
-                        <label id="pLevelLabel">Level / Year</label>
+                        <label><i class="fa-solid fa-layer-group" style="margin-right:5px;"></i>Current Level</label>
                         <select id="profileLevel">
-                            <option value="">Select</option>
-                            <option value="Year 1">Year 1 / 100L</option>
-                            <option value="Year 2">Year 2 / 200L</option>
-                            <option value="Year 3">Year 3 / 300L</option>
-                            <option value="Year 4">Year 4 / 400L</option>
-                            <option value="Year 5">Year 5 / 500L</option>
-                            <option value="Postgraduate">Postgraduate</option>
+                            <option value="">Select Level</option>
+                            <option value="100L">100 Level</option>
+                            <option value="200L">200 Level</option>
+                            <option value="300L">300 Level</option>
+                            <option value="400L">400 Level</option>
+                            <option value="500L">500 Level</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label id="pSessionLabel">Academic Session</label>
+                        <label><i class="fa-solid fa-calendar-days" style="margin-right:5px;"></i>Academic
+                            Session</label>
                         <input type="text" id="profileSession" placeholder="e.g. 2023/2024">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label id="pUniLabel">University / Institution</label>
-                    <input type="text" id="profileUni" placeholder="e.g. Lead City University">
-                </div>
-                <div class="form-group">
-                    <label id="pCountryLabel">Country</label>
-                    <div style="display:flex;gap:8px;">
-                        <input type="text" id="profileCountryDisplay" readonly style="cursor:pointer;flex:1;"
-                            onclick="openSetup()" placeholder="Select country">
-                        <button onclick="openSetup()"
-                            style="padding:10px 16px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </button>
-                    </div>
+                    <label><i class="fa-solid fa-university" style="margin-right:5px;"></i>University</label>
+                    <input type="text" id="profileUni" placeholder="e.g. Lead City University, Ibadan">
                 </div>
                 <button class="btn btn-primary" onclick="saveProfile()">
-                    <i class="fa-solid fa-floppy-disk"></i> <span id="saveProfileBtn">Save Profile</span>
+                    <i class="fa-solid fa-floppy-disk"></i> Save Profile
                 </button>
                 <div id="profileMsg"
                     style="margin-top:10px;font-size:13px;color:var(--green);display:none;align-items:center;gap:6px;">
-                    <i class="fa-solid fa-circle-check"></i> <span id="profileSavedTxt">Profile saved!</span>
+                    <i class="fa-solid fa-circle-check"></i> Profile saved successfully!
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ══ SETUP WIZARD MODAL ══ -->
-    <div class="modal-overlay" id="setupModal">
-        <div class="modal modal-wide">
-            <div id="setupStep1">
-                <div class="modal-header">
-                    <div>
-                        <h3 id="step1Title">Choose Your Language</h3>
-                        <p id="step1Desc">GradeGuard will display in your preferred language</p>
-                    </div>
-                    <button class="modal-close" onclick="closeModal('setupModal')"><i
-                            class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="wizard-steps">
-                    <div class="wizard-step active" id="ws1"></div>
-                    <div class="wizard-step" id="ws2"></div>
-                </div>
-                <div class="lang-grid" id="langGrid"></div>
-                <button class="btn btn-primary" style="margin-top:16px;" onclick="goToStep2()">
-                    <span id="nextBtn">Next → Select Country</span>
-                </button>
-            </div>
-            <div id="setupStep2" style="display:none;">
-                <div class="modal-header">
-                    <div>
-                        <h3 id="step2Title">Choose Your Country</h3>
-                        <p id="step2Desc">GradeGuard adapts to your grading system automatically</p>
-                    </div>
-                    <button class="modal-close" onclick="closeModal('setupModal')"><i
-                            class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="wizard-steps">
-                    <div class="wizard-step done"></div>
-                    <div class="wizard-step active"></div>
-                </div>
-                <div class="continent-tabs" id="continentTabs"></div>
-                <div class="country-grid" id="countryGrid"></div>
-                <div style="display:flex;gap:8px;margin-top:16px;">
-                    <button class="btn btn-secondary" style="margin-top:0;" onclick="goToStep1()">
-                        ← <span id="backBtn">Back</span>
-                    </button>
-                    <button class="btn btn-primary" style="margin-top:0;" onclick="confirmSetup()">
-                        <i class="fa-solid fa-check"></i> <span id="confirmBtn">Confirm</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ LANGUAGE ONLY MODAL ══ -->
-    <div class="modal-overlay" id="langModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <h3 id="langModalTitle">Change Language</h3>
-                </div>
-                <button class="modal-close" onclick="closeModal('langModal')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="lang-grid" id="langGrid2"></div>
-            <button class="btn btn-primary" style="margin-top:16px;" onclick="applyLang()">
-                <i class="fa-solid fa-check"></i> <span id="applyLangBtn">Apply</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- ══ DELETE MODAL ══ -->
+    <!-- Delete Modal -->
     <div class="modal-overlay" id="deleteModal">
-        <div class="modal" style="max-width:400px;">
-            <div style="font-size:32px;color:var(--red);margin-bottom:12px;"><i class="fa-solid fa-trash-can"></i></div>
-            <h3 id="deleteTitle" style="margin-bottom:8px;">Delete Semester?</h3>
-            <p id="deleteDesc" style="color:var(--text2);margin-bottom:20px;font-size:14px;">This action cannot be
-                undone.</p>
+        <div class="modal">
+            <div class="modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+            <h3>Delete Semester?</h3>
+            <p>This action cannot be undone. Are you sure?</p>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">
-                    <i class="fa-solid fa-xmark"></i> <span id="cancelBtn">Cancel</span>
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fa-solid fa-xmark"></i> Cancel
                 </button>
                 <button class="btn btn-danger" onclick="confirmDelete()">
-                    <i class="fa-solid fa-trash"></i> <span id="deleteBtn">Delete</span>
+                    <i class="fa-solid fa-trash"></i> Yes, Delete
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // ════════════════════════════════════════════════════════════
-        // LANGUAGE STRINGS
-        // ════════════════════════════════════════════════════════════
-        var LANGS = {
-            en: {
-                name: 'English', flag: '🇬🇧', native: 'English', dir: 'ltr',
-                tagline: 'Smart Academic Performance Tracker',
-                dashboard: 'Dashboard', addSem: 'Add Semester', calculator: 'Calculator', myProfile: 'My Profile',
-                currentGPA: 'Current GPA', semesters: 'Semesters', bestGPA: 'Best GPA', totalCourses: 'Total Courses',
-                standingTitle: 'Class Standing Progress',
-                trendTitle: 'GPA Trend', weakTitle: 'Weak Course Detector',
-                weakDesc: 'Courses with low grades dragging your GPA down:',
-                noChartTxt: 'Add at least 2 semesters to see your trend',
-                noWeakTxt: 'No weak courses! All courses are passing.',
-                historyTitle: 'Semester History', printBtn: 'Print',
-                noHistoryTxt: 'No semesters yet. Go to Add Semester!',
-                addTitle: 'Add New Semester', semNameLabel: 'Semester Name',
-                colCourse: 'Course Name', colUnits: 'Units', colGrade: 'Grade',
-                addCourseBtn: 'Add Course', saveSemBtn: 'Save Semester',
-                calcTitle: 'Target GPA Calculator',
-                calcDesc: 'Fill in your details to find out what GPA you need per semester to graduate with your dream class.',
-                curGPALabel: 'Your Current GPA', curSemLabel: 'Current Semester Number',
-                targetLabel: 'Target GPA at Graduation', totalSemLabel: 'Total Semesters in Program',
-                calcBtn: 'Calculate What I Need',
-                gradingRefTitle: 'Grading Scale Reference',
-                pNameLabel: 'Full Name', pMatricLabel: 'Student ID / Matric',
-                pDeptLabel: 'Department / Major', pFacultyLabel: 'Faculty / School',
-                pLevelLabel: 'Level / Year', pSessionLabel: 'Academic Session',
-                pUniLabel: 'University / Institution', pCountryLabel: 'Country',
-                saveProfileBtn: 'Save Profile', profileSavedTxt: 'Profile saved!',
-                profileSetup: 'Set up your profile below',
-                sbTitle: 'Set Up GradeGuard', sbDesc: 'Choose your language and country to personalise your experience',
-                sbBtn: 'Get Started', step1Title: 'Choose Your Language',
-                step1Desc: 'GradeGuard will display in your preferred language',
-                step2Title: 'Choose Your Country', step2Desc: 'GradeGuard adapts to your grading system automatically',
-                nextBtn: 'Next → Select Country', backBtn: 'Back', confirmBtn: 'Confirm',
-                applyLangBtn: 'Apply', langModalTitle: 'Change Language',
-                deleteTitle: 'Delete Semester?', deleteDesc: 'This action cannot be undone.',
-                cancelBtn: 'Cancel', deleteBtn: 'Delete',
-                noCountryWarnTxt: 'Please select your country first for accurate grading!',
-                noCountryWarnBtn: 'Setup', standingLabel: 'Standing',
-                plFail: 'Fail — 0', plBest: 'Best',
-                excellent: 'Excellent!', goodStanding: 'Good Standing!',
-                warning: 'Warning:', dangerZone: 'Danger Zone:',
-                dangerTxt: 'Your GPA is critically low. Please speak to your academic advisor.',
-                warningTxt: 'Your GPA needs improvement. Focus on weak courses.',
-                excellentTxt: 'Outstanding academic performance. Keep it up!',
-                goodTxt: 'You are performing well. Keep pushing higher!',
-                semSaved: 'Semester saved!', semUpdated: 'Semester updated!',
-                keepOne: 'Keep at least one course!',
-                enterGPA: 'Enter your current GPA!', enterSem: 'Enter current semester!',
-                enterTarget: 'Enter target GPA!', enterTotal: 'Enter total semesters!',
-                semBeforeTotal: 'Current semester must be less than total!',
-                notAchievable: 'Target of {t} is Not Achievable',
-                alreadyAchieved: 'Already Achieved!',
-                alreadyTxt: 'Your GPA already meets your target! Maintain performance to graduate with {s}!',
-                youNeed: 'To graduate with {s}, you need:',
-                perSem: 'per semester for your remaining {r} semester(s)',
-                whatYouCan: 'What you CAN realistically achieve:',
-                bestPossible: 'Best possible GPA: {m}',
-                targetStanding: 'Target Standing',
-                difficulty: 'Difficulty', semsLeft: 'Semesters Left',
-                veryDemanding: '🔴 Very Demanding', challenging: '🟡 Challenging',
-                manageable: '🟢 Manageable', easy: '✅ Easy',
-                tapToExpand: 'tap to expand & edit',
-                totalUnits: 'Total Units', semesterGPA: 'Semester GPA',
-                saveChanges: 'Save Changes', selectCountryFirst: 'Please select your country first!',
-            },
-            fr: {
-                name: 'French', flag: '🇫🇷', native: 'Français', dir: 'ltr',
-                tagline: 'Suivi Intelligent des Performances Académiques',
-                dashboard: 'Tableau de bord', addSem: 'Ajouter Semestre', calculator: 'Calculateur', myProfile: 'Mon Profil',
-                currentGPA: 'GPA Actuel', semesters: 'Semestres', bestGPA: 'Meilleur GPA', totalCourses: 'Cours Total',
-                standingTitle: 'Progression Académique',
-                trendTitle: 'Tendance GPA', weakTitle: 'Détecteur de Cours Faibles',
-                weakDesc: 'Cours avec de mauvaises notes qui tirent votre GPA vers le bas:',
-                noChartTxt: 'Ajoutez au moins 2 semestres pour voir votre tendance',
-                noWeakTxt: 'Aucun cours faible! Tous les cours sont réussis.',
-                historyTitle: 'Historique des Semestres', printBtn: 'Imprimer',
-                noHistoryTxt: 'Aucun semestre. Allez à Ajouter Semestre!',
-                addTitle: 'Ajouter un Nouveau Semestre', semNameLabel: 'Nom du Semestre',
-                colCourse: 'Nom du Cours', colUnits: 'Unités', colGrade: 'Note',
-                addCourseBtn: 'Ajouter Cours', saveSemBtn: 'Enregistrer Semestre',
-                calcTitle: 'Calculateur GPA Cible',
-                calcDesc: 'Entrez vos détails pour savoir quel GPA vous avez besoin par semestre pour diplômer avec votre classe rêvée.',
-                curGPALabel: 'Votre GPA Actuel', curSemLabel: 'Numéro de Semestre Actuel',
-                targetLabel: 'GPA Cible à la Graduation', totalSemLabel: 'Semestres Totaux',
-                calcBtn: 'Calculer Ce Dont J\'ai Besoin',
-                gradingRefTitle: 'Référence de l\'Échelle de Notes',
-                pNameLabel: 'Nom Complet', pMatricLabel: 'Numéro Étudiant',
-                pDeptLabel: 'Département / Spécialité', pFacultyLabel: 'Faculté',
-                pLevelLabel: 'Niveau / Année', pSessionLabel: 'Session Académique',
-                pUniLabel: 'Université / Institution', pCountryLabel: 'Pays',
-                saveProfileBtn: 'Enregistrer Profil', profileSavedTxt: 'Profil enregistré!',
-                profileSetup: 'Configurez votre profil ci-dessous',
-                sbTitle: 'Configurer GradeGuard', sbDesc: 'Choisissez votre langue et votre pays pour personnaliser votre expérience',
-                sbBtn: 'Commencer', step1Title: 'Choisissez Votre Langue',
-                step1Desc: 'GradeGuard s\'affichera dans votre langue préférée',
-                step2Title: 'Choisissez Votre Pays', step2Desc: 'GradeGuard s\'adapte automatiquement à votre système de notation',
-                nextBtn: 'Suivant → Sélectionner Pays', backBtn: 'Retour', confirmBtn: 'Confirmer',
-                applyLangBtn: 'Appliquer', langModalTitle: 'Changer de Langue',
-                deleteTitle: 'Supprimer le Semestre?', deleteDesc: 'Cette action ne peut pas être annulée.',
-                cancelBtn: 'Annuler', deleteBtn: 'Supprimer',
-                noCountryWarnTxt: 'Veuillez d\'abord sélectionner votre pays pour une notation précise!',
-                noCountryWarnBtn: 'Configurer', standingLabel: 'Classement',
-                plFail: 'Échec — 0', plBest: 'Meilleur',
-                excellent: 'Excellent!', goodStanding: 'Bonne Position!',
-                warning: 'Avertissement:', dangerZone: 'Zone Dangereuse:',
-                dangerTxt: 'Votre GPA est extrêmement bas. Consultez votre conseiller académique.',
-                warningTxt: 'Votre GPA a besoin d\'amélioration. Concentrez-vous sur les cours faibles.',
-                excellentTxt: 'Performance académique exceptionnelle. Continuez!',
-                goodTxt: 'Vous performez bien. Continuez à pousser!',
-                semSaved: 'Semestre enregistré!', semUpdated: 'Semestre mis à jour!',
-                keepOne: 'Gardez au moins un cours!',
-                enterGPA: 'Entrez votre GPA actuel!', enterSem: 'Entrez le semestre actuel!',
-                enterTarget: 'Entrez le GPA cible!', enterTotal: 'Entrez les semestres totaux!',
-                semBeforeTotal: 'Le semestre actuel doit être inférieur au total!',
-                notAchievable: 'Cible de {t} n\'est Pas Réalisable',
-                alreadyAchieved: 'Déjà Atteint!',
-                alreadyTxt: 'Votre GPA atteint déjà votre cible! Maintenez vos performances pour diplômer avec {s}!',
-                youNeed: 'Pour diplômer avec {s}, vous avez besoin de:',
-                perSem: 'par semestre pour vos {r} semestre(s) restant(s)',
-                whatYouCan: 'Ce que vous POUVEZ réalistement atteindre:',
-                bestPossible: 'Meilleur GPA possible: {m}',
-                targetStanding: 'Classement Cible',
-                difficulty: 'Difficulté', semsLeft: 'Semestres Restants',
-                veryDemanding: '🔴 Très Exigeant', challenging: '🟡 Difficile',
-                manageable: '🟢 Faisable', easy: '✅ Facile',
-                tapToExpand: 'toucher pour voir & modifier',
-                totalUnits: 'Unités Totales', semesterGPA: 'GPA du Semestre',
-                saveChanges: 'Enregistrer Changements', selectCountryFirst: 'Veuillez d\'abord sélectionner votre pays!',
-            },
-            ar: {
-                name: 'Arabic', flag: '🇸🇦', native: 'العربية', dir: 'rtl',
-                tagline: 'متتبع الأداء الأكاديمي الذكي',
-                dashboard: 'لوحة التحكم', addSem: 'إضافة فصل', calculator: 'الحاسبة', myProfile: 'ملفي',
-                currentGPA: 'المعدل الحالي', semesters: 'الفصول', bestGPA: 'أفضل معدل', totalCourses: 'إجمالي المواد',
-                standingTitle: 'تقدم المستوى الأكاديمي',
-                trendTitle: 'اتجاه المعدل', weakTitle: 'كاشف المواد الضعيفة',
-                weakDesc: 'المواد ذات الدرجات المنخفضة التي تؤثر على معدلك:',
-                noChartTxt: 'أضف فصلين على الأقل لرؤية اتجاهك',
-                noWeakTxt: 'لا توجد مواد ضعيفة! جميع المواد ناجحة.',
-                historyTitle: 'سجل الفصول', printBtn: 'طباعة',
-                noHistoryTxt: 'لا توجد فصول بعد. اذهب إلى إضافة فصل!',
-                addTitle: 'إضافة فصل دراسي جديد', semNameLabel: 'اسم الفصل',
-                colCourse: 'اسم المادة', colUnits: 'الوحدات', colGrade: 'الدرجة',
-                addCourseBtn: 'إضافة مادة', saveSemBtn: 'حفظ الفصل',
-                calcTitle: 'حاسبة المعدل المستهدف',
-                calcDesc: 'أدخل بياناتك لمعرفة المعدل المطلوب لكل فصل للتخرج بدرجتك المنشودة.',
-                curGPALabel: 'معدلك الحالي', curSemLabel: 'رقم الفصل الحالي',
-                targetLabel: 'المعدل المستهدف عند التخرج', totalSemLabel: 'إجمالي الفصول في البرنامج',
-                calcBtn: 'احسب ما أحتاجه',
-                gradingRefTitle: 'مرجع سلم الدرجات',
-                pNameLabel: 'الاسم الكامل', pMatricLabel: 'رقم الطالب',
-                pDeptLabel: 'القسم / التخصص', pFacultyLabel: 'الكلية',
-                pLevelLabel: 'المستوى / السنة', pSessionLabel: 'العام الدراسي',
-                pUniLabel: 'الجامعة / المؤسسة', pCountryLabel: 'الدولة',
-                saveProfileBtn: 'حفظ الملف', profileSavedTxt: 'تم حفظ الملف!',
-                profileSetup: 'قم بإعداد ملفك أدناه',
-                sbTitle: 'إعداد GradeGuard', sbDesc: 'اختر لغتك وبلدك لتخصيص تجربتك',
-                sbBtn: 'ابدأ', step1Title: 'اختر لغتك',
-                step1Desc: 'سيتم عرض GradeGuard بلغتك المفضلة',
-                step2Title: 'اختر بلدك', step2Desc: 'يتكيف GradeGuard تلقائيًا مع نظام تقييمك',
-                nextBtn: 'التالي ← اختر البلد', backBtn: 'رجوع', confirmBtn: 'تأكيد',
-                applyLangBtn: 'تطبيق', langModalTitle: 'تغيير اللغة',
-                deleteTitle: 'حذف الفصل؟', deleteDesc: 'لا يمكن التراجع عن هذا الإجراء.',
-                cancelBtn: 'إلغاء', deleteBtn: 'حذف',
-                noCountryWarnTxt: 'يرجى اختيار بلدك أولاً للحصول على تقييم دقيق!',
-                noCountryWarnBtn: 'الإعداد', standingLabel: 'المرتبة',
-                plFail: 'رسوب — 0', plBest: 'الأفضل',
-                excellent: 'ممتاز!', goodStanding: 'مستوى جيد!',
-                warning: 'تحذير:', dangerZone: 'منطقة خطر:',
-                dangerTxt: 'معدلك منخفض جداً. يرجى التحدث مع مستشارك الأكاديمي.',
-                warningTxt: 'يحتاج معدلك إلى تحسين. ركز على المواد الضعيفة.',
-                excellentTxt: 'أداء أكاديمي متميز. استمر!',
-                goodTxt: 'أنت تؤدي بشكل جيد. استمر في التميز!',
-                semSaved: 'تم حفظ الفصل!', semUpdated: 'تم تحديث الفصل!',
-                keepOne: 'احتفظ بمادة واحدة على الأقل!',
-                enterGPA: 'أدخل معدلك الحالي!', enterSem: 'أدخل رقم الفصل الحالي!',
-                enterTarget: 'أدخل المعدل المستهدف!', enterTotal: 'أدخل إجمالي الفصول!',
-                semBeforeTotal: 'يجب أن يكون الفصل الحالي أقل من الإجمالي!',
-                notAchievable: 'هدف {t} غير قابل للتحقيق',
-                alreadyAchieved: 'تم التحقيق بالفعل!',
-                alreadyTxt: 'معدلك يلبي هدفك بالفعل! حافظ على أدائك للتخرج بـ {s}!',
-                youNeed: 'للتخرج بـ {s}، تحتاج إلى:',
-                perSem: 'لكل فصل من الفصول المتبقية {r}',
-                whatYouCan: 'ما يمكنك تحقيقه بواقعية:',
-                bestPossible: 'أفضل معدل ممكن: {m}',
-                targetStanding: 'المرتبة المستهدفة',
-                difficulty: 'الصعوبة', semsLeft: 'الفصول المتبقية',
-                veryDemanding: '🔴 صعب جداً', challenging: '🟡 صعب',
-                manageable: '🟢 قابل للتحقيق', easy: '✅ سهل',
-                tapToExpand: 'اضغط للتوسيع والتعديل',
-                totalUnits: 'إجمالي الوحدات', semesterGPA: 'معدل الفصل',
-                saveChanges: 'حفظ التغييرات', selectCountryFirst: 'يرجى اختيار بلدك أولاً!',
-            },
-            pt: {
-                name: 'Portuguese', flag: '🇧🇷', native: 'Português', dir: 'ltr',
-                tagline: 'Rastreador Inteligente de Desempenho Acadêmico',
-                dashboard: 'Painel', addSem: 'Adicionar Semestre', calculator: 'Calculadora', myProfile: 'Meu Perfil',
-                currentGPA: 'GPA Atual', semesters: 'Semestres', bestGPA: 'Melhor GPA', totalCourses: 'Total de Disciplinas',
-                standingTitle: 'Progresso Acadêmico',
-                trendTitle: 'Tendência do GPA', weakTitle: 'Detector de Disciplinas Fracas',
-                weakDesc: 'Disciplinas com notas baixas que prejudicam seu GPA:',
-                noChartTxt: 'Adicione pelo menos 2 semestres para ver sua tendência',
-                noWeakTxt: 'Nenhuma disciplina fraca! Todas as disciplinas estão aprovadas.',
-                historyTitle: 'Histórico de Semestres', printBtn: 'Imprimir',
-                noHistoryTxt: 'Nenhum semestre ainda. Vá para Adicionar Semestre!',
-                addTitle: 'Adicionar Novo Semestre', semNameLabel: 'Nome do Semestre',
-                colCourse: 'Nome da Disciplina', colUnits: 'Créditos', colGrade: 'Nota',
-                addCourseBtn: 'Adicionar Disciplina', saveSemBtn: 'Salvar Semestre',
-                calcTitle: 'Calculadora de GPA Alvo',
-                calcDesc: 'Preencha seus dados para saber qual GPA você precisa por semestre para se formar com sua classe dos sonhos.',
-                curGPALabel: 'Seu GPA Atual', curSemLabel: 'Número do Semestre Atual',
-                targetLabel: 'GPA Alvo na Formatura', totalSemLabel: 'Total de Semestres no Programa',
-                calcBtn: 'Calcular O Que Preciso',
-                gradingRefTitle: 'Referência da Escala de Notas',
-                pNameLabel: 'Nome Completo', pMatricLabel: 'Número do Estudante',
-                pDeptLabel: 'Departamento / Curso', pFacultyLabel: 'Faculdade',
-                pLevelLabel: 'Nível / Ano', pSessionLabel: 'Sessão Acadêmica',
-                pUniLabel: 'Universidade / Instituição', pCountryLabel: 'País',
-                saveProfileBtn: 'Salvar Perfil', profileSavedTxt: 'Perfil salvo!',
-                profileSetup: 'Configure seu perfil abaixo',
-                sbTitle: 'Configurar GradeGuard', sbDesc: 'Escolha seu idioma e país para personalizar sua experiência',
-                sbBtn: 'Começar', step1Title: 'Escolha Seu Idioma',
-                step1Desc: 'GradeGuard será exibido no seu idioma preferido',
-                step2Title: 'Escolha Seu País', step2Desc: 'GradeGuard se adapta automaticamente ao seu sistema de avaliação',
-                nextBtn: 'Próximo → Selecionar País', backBtn: 'Voltar', confirmBtn: 'Confirmar',
-                applyLangBtn: 'Aplicar', langModalTitle: 'Mudar Idioma',
-                deleteTitle: 'Excluir Semestre?', deleteDesc: 'Esta ação não pode ser desfeita.',
-                cancelBtn: 'Cancelar', deleteBtn: 'Excluir',
-                noCountryWarnTxt: 'Por favor, selecione seu país primeiro para avaliação precisa!',
-                noCountryWarnBtn: 'Configurar', standingLabel: 'Classificação',
-                plFail: 'Reprovado — 0', plBest: 'Melhor',
-                excellent: 'Excelente!', goodStanding: 'Bom Desempenho!',
-                warning: 'Aviso:', dangerZone: 'Zona de Perigo:',
-                dangerTxt: 'Seu GPA está criticamente baixo. Fale com seu orientador acadêmico.',
-                warningTxt: 'Seu GPA precisa de melhoria. Foque nas disciplinas fracas.',
-                excellentTxt: 'Desempenho acadêmico excepcional. Continue assim!',
-                goodTxt: 'Você está se saindo bem. Continue melhorando!',
-                semSaved: 'Semestre salvo!', semUpdated: 'Semestre atualizado!',
-                keepOne: 'Mantenha pelo menos uma disciplina!',
-                enterGPA: 'Insira seu GPA atual!', enterSem: 'Insira o semestre atual!',
-                enterTarget: 'Insira o GPA alvo!', enterTotal: 'Insira o total de semestres!',
-                semBeforeTotal: 'O semestre atual deve ser menor que o total!',
-                notAchievable: 'Meta de {t} Não é Alcançável',
-                alreadyAchieved: 'Já Alcançado!',
-                alreadyTxt: 'Seu GPA já atinge sua meta! Mantenha o desempenho para se formar com {s}!',
-                youNeed: 'Para se formar com {s}, você precisa de:',
-                perSem: 'por semestre para seus {r} semestre(s) restante(s)',
-                whatYouCan: 'O que você PODE realisticamente alcançar:',
-                bestPossible: 'Melhor GPA possível: {m}',
-                targetStanding: 'Classificação Alvo',
-                difficulty: 'Dificuldade', semsLeft: 'Semestres Restantes',
-                veryDemanding: '🔴 Muito Exigente', challenging: '🟡 Desafiador',
-                manageable: '🟢 Gerenciável', easy: '✅ Fácil',
-                tapToExpand: 'toque para expandir e editar',
-                totalUnits: 'Total de Créditos', semesterGPA: 'GPA do Semestre',
-                saveChanges: 'Salvar Alterações', selectCountryFirst: 'Por favor, selecione seu país primeiro!',
-            },
-            sw: {
-                name: 'Swahili', flag: '🇰🇪', native: 'Kiswahili', dir: 'ltr',
-                tagline: 'Mfumo wa Ufuatiliaji wa Utendaji wa Kitaaluma',
-                dashboard: 'Dashibodi', addSem: 'Ongeza Muhula', calculator: 'Kikokotoo', myProfile: 'Wasifu Wangu',
-                currentGPA: 'GPA ya Sasa', semesters: 'Muhula', bestGPA: 'GPA Bora', totalCourses: 'Masomo Yote',
-                standingTitle: 'Maendeleo ya Kitaaluma',
-                trendTitle: 'Mwelekeo wa GPA', weakTitle: 'Kipengele cha Masomo Dhaifu',
-                weakDesc: 'Masomo yenye alama za chini yanayopunguza GPA yako:',
-                noChartTxt: 'Ongeza angalau muhula 2 kuona mwelekeo wako',
-                noWeakTxt: 'Hakuna masomo dhaifu! Masomo yote yamepita.',
-                historyTitle: 'Historia ya Muhula', printBtn: 'Chapisha',
-                noHistoryTxt: 'Hakuna muhula bado. Nenda Ongeza Muhula!',
-                addTitle: 'Ongeza Muhula Mpya', semNameLabel: 'Jina la Muhula',
-                colCourse: 'Jina la Somo', colUnits: 'Vitengo', colGrade: 'Daraja',
-                addCourseBtn: 'Ongeza Somo', saveSemBtn: 'Hifadhi Muhula',
-                calcTitle: 'Kikokotoo cha GPA Lengwa',
-                calcDesc: 'Jaza maelezo yako kujua GPA unayohitaji kwa kila muhula kuhitimu na daraja unalotaka.',
-                curGPALabel: 'GPA Yako ya Sasa', curSemLabel: 'Nambari ya Muhula wa Sasa',
-                targetLabel: 'GPA Lengwa Unapohitimu', totalSemLabel: 'Muhula Wote katika Programu',
-                calcBtn: 'Hesabu Ninachohitaji',
-                gradingRefTitle: 'Kumbukumbu ya Kipimo cha Daraja',
-                pNameLabel: 'Jina Kamili', pMatricLabel: 'Nambari ya Mwanafunzi',
-                pDeptLabel: 'Idara / Utaalamu', pFacultyLabel: 'Kitivo',
-                pLevelLabel: 'Kiwango / Mwaka', pSessionLabel: 'Kipindi cha Masomo',
-                pUniLabel: 'Chuo Kikuu / Taasisi', pCountryLabel: 'Nchi',
-                saveProfileBtn: 'Hifadhi Wasifu', profileSavedTxt: 'Wasifu umehifadhiwa!',
-                profileSetup: 'Sanidi wasifu wako hapa chini',
-                sbTitle: 'Sanidi GradeGuard', sbDesc: 'Chagua lugha na nchi yako kubinafsisha uzoefu wako',
-                sbBtn: 'Anza', step1Title: 'Chagua Lugha Yako',
-                step1Desc: 'GradeGuard itaonyeshwa katika lugha unayopendelea',
-                step2Title: 'Chagua Nchi Yako', step2Desc: 'GradeGuard inabadilika moja kwa moja kulingana na mfumo wako wa grading',
-                nextBtn: 'Ifuataayo → Chagua Nchi', backBtn: 'Rudi', confirmBtn: 'Thibitisha',
-                applyLangBtn: 'Tumia', langModalTitle: 'Badilisha Lugha',
-                deleteTitle: 'Futa Muhula?', deleteDesc: 'Hatua hii haiwezi kutenduliwa.',
-                cancelBtn: 'Ghairi', deleteBtn: 'Futa',
-                noCountryWarnTxt: 'Tafadhali chagua nchi yako kwanza kwa upimaji sahihi!',
-                noCountryWarnBtn: 'Sanidi', standingLabel: 'Cheo',
-                plFail: 'Kufeli — 0', plBest: 'Bora',
-                excellent: 'Bora Sana!', goodStanding: 'Hali Nzuri!',
-                warning: 'Onyo:', dangerZone: 'Eneo Hatari:',
-                dangerTxt: 'GPA yako iko chini sana. Tafadhali zungumza na mshauri wako wa kitaaluma.',
-                warningTxt: 'GPA yako inahitaji kuboreka. Zingatia masomo dhaifu.',
-                excellentTxt: 'Utendaji wa kitaaluma wa kipekee. Endelea!',
-                goodTxt: 'Unafanya vizuri. Endelea kupiga juu!',
-                semSaved: 'Muhula umehifadhiwa!', semUpdated: 'Muhula umesasishwa!',
-                keepOne: 'Weka angalau somo moja!',
-                enterGPA: 'Ingiza GPA yako ya sasa!', enterSem: 'Ingiza muhula wa sasa!',
-                enterTarget: 'Ingiza GPA lengwa!', enterTotal: 'Ingiza muhula wote!',
-                semBeforeTotal: 'Muhula wa sasa lazima uwe mdogo kuliko jumla!',
-                notAchievable: 'Lengo la {t} Haliwezekani',
-                alreadyAchieved: 'Limefikiwa Tayari!',
-                alreadyTxt: 'GPA yako tayari inakidhi lengo lako! Dumisha utendaji kuhitimu na {s}!',
-                youNeed: 'Kuhitimu na {s}, unahitaji:',
-                perSem: 'kwa kila muhula kwa muhula {r} uliobaki',
-                whatYouCan: 'Unachoweza kufika kwa uhalisia:',
-                bestPossible: 'GPA bora inayowezekana: {m}',
-                targetStanding: 'Cheo Lengwa',
-                difficulty: 'Ugumu', semsLeft: 'Muhula Uliobaki',
-                veryDemanding: '🔴 Ngumu Sana', challenging: '🟡 Changamoto',
-                manageable: '🟢 Inawezekana', easy: '✅ Rahisi',
-                tapToExpand: 'gusa kupanua na kuhariri',
-                totalUnits: 'Vitengo Vyote', semesterGPA: 'GPA ya Muhula',
-                saveChanges: 'Hifadhi Mabadiliko', selectCountryFirst: 'Tafadhali chagua nchi yako kwanza!',
-            },
-            es: {
-                name: 'Spanish', flag: '🇪🇸', native: 'Español', dir: 'ltr',
-                tagline: 'Rastreador Inteligente de Rendimiento Académico',
-                dashboard: 'Panel', addSem: 'Agregar Semestre', calculator: 'Calculadora', myProfile: 'Mi Perfil',
-                currentGPA: 'GPA Actual', semesters: 'Semestres', bestGPA: 'Mejor GPA', totalCourses: 'Total de Materias',
-                standingTitle: 'Progreso Académico',
-                trendTitle: 'Tendencia del GPA', weakTitle: 'Detector de Materias Débiles',
-                weakDesc: 'Materias con calificaciones bajas que afectan tu GPA:',
-                noChartTxt: 'Agrega al menos 2 semestres para ver tu tendencia',
-                noWeakTxt: '¡Sin materias débiles! Todas las materias aprobadas.',
-                historyTitle: 'Historial de Semestres', printBtn: 'Imprimir',
-                noHistoryTxt: 'No hay semestres aún. ¡Ve a Agregar Semestre!',
-                addTitle: 'Agregar Nuevo Semestre', semNameLabel: 'Nombre del Semestre',
-                colCourse: 'Nombre de la Materia', colUnits: 'Créditos', colGrade: 'Calificación',
-                addCourseBtn: 'Agregar Materia', saveSemBtn: 'Guardar Semestre',
-                calcTitle: 'Calculadora de GPA Objetivo',
-                calcDesc: 'Ingresa tus datos para saber qué GPA necesitas por semestre para graduarte con tu clase soñada.',
-                curGPALabel: 'Tu GPA Actual', curSemLabel: 'Número de Semestre Actual',
-                targetLabel: 'GPA Objetivo al Graduarte', totalSemLabel: 'Semestres Totales en el Programa',
-                calcBtn: 'Calcular Lo Que Necesito',
-                gradingRefTitle: 'Referencia de la Escala de Calificaciones',
-                pNameLabel: 'Nombre Completo', pMatricLabel: 'Número de Estudiante',
-                pDeptLabel: 'Departamento / Carrera', pFacultyLabel: 'Facultad',
-                pLevelLabel: 'Nivel / Año', pSessionLabel: 'Sesión Académica',
-                pUniLabel: 'Universidad / Institución', pCountryLabel: 'País',
-                saveProfileBtn: 'Guardar Perfil', profileSavedTxt: '¡Perfil guardado!',
-                profileSetup: 'Configura tu perfil a continuación',
-                sbTitle: 'Configurar GradeGuard', sbDesc: 'Elige tu idioma y país para personalizar tu experiencia',
-                sbBtn: 'Comenzar', step1Title: 'Elige Tu Idioma',
-                step1Desc: 'GradeGuard se mostrará en tu idioma preferido',
-                step2Title: 'Elige Tu País', step2Desc: 'GradeGuard se adapta automáticamente a tu sistema de calificaciones',
-                nextBtn: 'Siguiente → Seleccionar País', backBtn: 'Volver', confirmBtn: 'Confirmar',
-                applyLangBtn: 'Aplicar', langModalTitle: 'Cambiar Idioma',
-                deleteTitle: '¿Eliminar Semestre?', deleteDesc: 'Esta acción no se puede deshacer.',
-                cancelBtn: 'Cancelar', deleteBtn: 'Eliminar',
-                noCountryWarnTxt: '¡Por favor selecciona tu país primero para una calificación precisa!',
-                noCountryWarnBtn: 'Configurar', standingLabel: 'Clasificación',
-                plFail: 'Reprobado — 0', plBest: 'Mejor',
-                excellent: '¡Excelente!', goodStanding: '¡Buen Desempeño!',
-                warning: 'Advertencia:', dangerZone: 'Zona de Peligro:',
-                dangerTxt: 'Tu GPA está críticamente bajo. Habla con tu asesor académico.',
-                warningTxt: 'Tu GPA necesita mejorar. Enfócate en las materias débiles.',
-                excellentTxt: 'Desempeño académico excepcional. ¡Sigue así!',
-                goodTxt: 'Te estás desempeñando bien. ¡Sigue mejorando!',
-                semSaved: '¡Semestre guardado!', semUpdated: '¡Semestre actualizado!',
-                keepOne: '¡Mantén al menos una materia!',
-                enterGPA: '¡Ingresa tu GPA actual!', enterSem: '¡Ingresa el semestre actual!',
-                enterTarget: '¡Ingresa el GPA objetivo!', enterTotal: '¡Ingresa el total de semestres!',
-                semBeforeTotal: '¡El semestre actual debe ser menor que el total!',
-                notAchievable: 'Meta de {t} No es Alcanzable',
-                alreadyAchieved: '¡Ya Alcanzado!',
-                alreadyTxt: '¡Tu GPA ya cumple tu meta! Mantén el rendimiento para graduarte con {s}!',
-                youNeed: 'Para graduarte con {s}, necesitas:',
-                perSem: 'por semestre para tus {r} semestre(s) restante(s)',
-                whatYouCan: 'Lo que SÍ puedes alcanzar realísticamente:',
-                bestPossible: 'Mejor GPA posible: {m}',
-                targetStanding: 'Clasificación Objetivo',
-                difficulty: 'Dificultad', semsLeft: 'Semestres Restantes',
-                veryDemanding: '🔴 Muy Exigente', challenging: '🟡 Desafiante',
-                manageable: '🟢 Manejable', easy: '✅ Fácil',
-                tapToExpand: 'toca para expandir y editar',
-                totalUnits: 'Créditos Totales', semesterGPA: 'GPA del Semestre',
-                saveChanges: 'Guardar Cambios', selectCountryFirst: '¡Por favor selecciona tu país primero!',
-            },
-            zh: {
-                name: 'Mandarin', flag: '🇨🇳', native: '中文', dir: 'ltr',
-                tagline: '智能学业成绩追踪器',
-                dashboard: '仪表板', addSem: '添加学期', calculator: '计算器', myProfile: '我的档案',
-                currentGPA: '当前绩点', semesters: '学期数', bestGPA: '最高绩点', totalCourses: '课程总数',
-                standingTitle: '学业进度',
-                trendTitle: '绩点趋势', weakTitle: '薄弱课程检测',
-                weakDesc: '成绩较低、拖累绩点的课程：',
-                noChartTxt: '添加至少2个学期以查看趋势',
-                noWeakTxt: '没有薄弱课程！所有课程均已通过。',
-                historyTitle: '学期历史', printBtn: '打印',
-                noHistoryTxt: '暂无学期。请前往添加学期！',
-                addTitle: '添加新学期', semNameLabel: '学期名称',
-                colCourse: '课程名称', colUnits: '学分', colGrade: '成绩',
-                addCourseBtn: '添加课程', saveSemBtn: '保存学期',
-                calcTitle: '目标绩点计算器',
-                calcDesc: '填写您的信息，了解每学期需要多少绩点才能以理想成绩毕业。',
-                curGPALabel: '当前绩点', curSemLabel: '当前学期编号',
-                targetLabel: '毕业目标绩点', totalSemLabel: '课程总学期数',
-                calcBtn: '计算我需要多少',
-                gradingRefTitle: '评分标准参考',
-                pNameLabel: '全名', pMatricLabel: '学号',
-                pDeptLabel: '院系 / 专业', pFacultyLabel: '学院',
-                pLevelLabel: '年级', pSessionLabel: '学年',
-                pUniLabel: '大学 / 机构', pCountryLabel: '国家',
-                saveProfileBtn: '保存档案', profileSavedTxt: '档案已保存！',
-                profileSetup: '请在下方设置您的档案',
-                sbTitle: '设置 GradeGuard', sbDesc: '选择您的语言和国家以个性化您的体验',
-                sbBtn: '开始', step1Title: '选择您的语言',
-                step1Desc: 'GradeGuard 将以您偏好的语言显示',
-                step2Title: '选择您的国家', step2Desc: 'GradeGuard 自动适应您的评分系统',
-                nextBtn: '下一步 → 选择国家', backBtn: '返回', confirmBtn: '确认',
-                applyLangBtn: '应用', langModalTitle: '更改语言',
-                deleteTitle: '删除学期？', deleteDesc: '此操作无法撤销。',
-                cancelBtn: '取消', deleteBtn: '删除',
-                noCountryWarnTxt: '请先选择您的国家以获得准确的评分！',
-                noCountryWarnBtn: '设置', standingLabel: '排名',
-                plFail: '不及格 — 0', plBest: '最佳',
-                excellent: '优秀！', goodStanding: '良好！',
-                warning: '警告：', dangerZone: '危险区：',
-                dangerTxt: '您的绩点极低。请立即联系您的学业顾问。',
-                warningTxt: '您的绩点需要提高。专注于薄弱课程。',
-                excellentTxt: '学业成绩卓越，继续保持！',
-                goodTxt: '您表现良好，继续向更高目标努力！',
-                semSaved: '学期已保存！', semUpdated: '学期已更新！',
-                keepOne: '请至少保留一门课程！',
-                enterGPA: '请输入当前绩点！', enterSem: '请输入当前学期！',
-                enterTarget: '请输入目标绩点！', enterTotal: '请输入总学期数！',
-                semBeforeTotal: '当前学期必须小于总学期数！',
-                notAchievable: '目标 {t} 不可实现',
-                alreadyAchieved: '已达成！',
-                alreadyTxt: '您的绩点已达到目标！保持现有表现，以 {s} 毕业！',
-                youNeed: '要以 {s} 毕业，您每学期需要：',
-                perSem: '在剩余的 {r} 个学期中',
-                whatYouCan: '您实际可以达到的目标：',
-                bestPossible: '最高可能绩点：{m}',
-                targetStanding: '目标排名',
-                difficulty: '难度', semsLeft: '剩余学期',
-                veryDemanding: '🔴 非常高要求', challenging: '🟡 有挑战性',
-                manageable: '🟢 可实现', easy: '✅ 容易',
-                tapToExpand: '点击展开和编辑',
-                totalUnits: '总学分', semesterGPA: '学期绩点',
-                saveChanges: '保存更改', selectCountryFirst: '请先选择您的国家！',
-            },
-        };
+        // ── GRADING SYSTEM (Nigerian 5.0 with E grade) ──
+        var GRADE_POINTS = { 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+        var GRADE_CLASS = { 'A': 'grade-A', 'B': 'grade-B', 'C': 'grade-C', 'D': 'grade-D', 'E': 'grade-E', 'F': 'grade-F' };
+        var ALL_GRADES = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-        // ════════════════════════════════════════════════════════════
-        // GRADING SYSTEMS (verified & accurate)
-        // ════════════════════════════════════════════════════════════
-        var CONTINENTS = {
-            africa: { name: 'Africa', emoji: '🌍' },
-            americas: { name: 'Americas', emoji: '🌎' },
-            europe: { name: 'Europe', emoji: '🏛️' },
-            asia: { name: 'Asia', emoji: '🌏' },
-            oceania: { name: 'Oceania', emoji: '🏝️' },
-        };
-
-        var GRADING_SYSTEMS = {
-            // ── AFRICA ──
-            nigeria: {
-                name: 'Nigeria', flag: '🇳🇬', continent: 'africa', scale: 5.0, label: '5.0 Scale (NUC Standard)',
-                cgpaLabel: 'Current CGPA',
-                note: 'Most Nigerian universities use 5.0 scale per NUC guidelines. Some polytechnics use 4.0.',
-                grades: [
-                    { grade: 'A', range: '70–100%', points: 5.0, label: 'Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'B', range: '60–69%', points: 4.0, label: 'Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'C', range: '50–59%', points: 3.0, label: 'Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'D', range: '45–49%', points: 2.0, label: 'Below Avg', cls: 'grade-low', isWeak: false },
-                    { grade: 'E', range: '40–44%', points: 1.0, label: 'Poor', cls: 'grade-poor', isWeak: true },
-                    { grade: 'F', range: '0–39%', points: 0.0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'First Class', min: 4.50, max: 5.00 },
-                    { label: 'Second Class Upper', min: 3.50, max: 4.49 },
-                    { label: 'Second Class Lower', min: 2.40, max: 3.49 },
-                    { label: 'Third Class', min: 1.50, max: 2.39 },
-                    { label: 'Pass', min: 1.00, max: 1.49 },
-                    { label: 'Fail', min: 0, max: 0.99 },
-                ],
-            },
-            ghana: {
-                name: 'Ghana', flag: '🇬🇭', continent: 'africa', scale: 4.0, label: '4.0 Scale',
-                cgpaLabel: 'Current CGPA',
-                grades: [
-                    { grade: 'A', range: '80–100%', points: 4.0, label: 'Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'B+', range: '75–79%', points: 3.5, label: 'Very Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B', range: '70–74%', points: 3.0, label: 'Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'C+', range: '65–69%', points: 2.5, label: 'Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C', range: '60–64%', points: 2.0, label: 'Pass', cls: 'grade-mid', isWeak: false },
-                    { grade: 'D', range: '50–59%', points: 1.0, label: 'Weak Pass', cls: 'grade-low', isWeak: true },
-                    { grade: 'F', range: '0–49%', points: 0.0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'First Class', min: 3.60, max: 4.00 },
-                    { label: 'Second Class Upper', min: 3.00, max: 3.59 },
-                    { label: 'Second Class Lower', min: 2.00, max: 2.99 },
-                    { label: 'Pass', min: 1.00, max: 1.99 },
-                    { label: 'Fail', min: 0, max: 0.99 },
-                ],
-            },
-            kenya: {
-                name: 'Kenya', flag: '🇰🇪', continent: 'africa', scale: 5.0, label: '5.0 Scale (British-based)',
-                cgpaLabel: 'Current GPA',
-                grades: [
-                    { grade: 'A', range: '70–100%', points: 5.0, label: 'First Class', cls: 'grade-top', isWeak: false },
-                    { grade: 'B+', range: '60–69%', points: 4.0, label: '2nd Upper', cls: 'grade-high', isWeak: false },
-                    { grade: 'B', range: '50–59%', points: 3.0, label: '2nd Lower', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C', range: '40–49%', points: 2.0, label: 'Pass', cls: 'grade-low', isWeak: false },
-                    { grade: 'F', range: '0–39%', points: 0.0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'First Class Honours', min: 4.50, max: 5.00 },
-                    { label: 'Second Class Upper Honours', min: 3.50, max: 4.49 },
-                    { label: 'Second Class Lower Honours', min: 2.50, max: 3.49 },
-                    { label: 'Pass', min: 1.50, max: 2.49 },
-                    { label: 'Fail', min: 0, max: 1.49 },
-                ],
-            },
-            southafrica: {
-                name: 'South Africa', flag: '🇿🇦', continent: 'africa', scale: 100, label: 'Percentage Scale',
-                cgpaLabel: 'Current Average %',
-                grades: [
-                    { grade: '75–100', range: '75–100%', points: 87, label: 'Distinction', cls: 'grade-top', isWeak: false },
-                    { grade: '70–74', range: '70–74%', points: 72, label: 'Merit', cls: 'grade-high', isWeak: false },
-                    { grade: '60–69', range: '60–69%', points: 65, label: 'Credit', cls: 'grade-mid', isWeak: false },
-                    { grade: '50–59', range: '50–59%', points: 55, label: 'Pass', cls: 'grade-low', isWeak: false },
-                    { grade: '0–49', range: '0–49%', points: 0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Distinction', min: 75, max: 100 },
-                    { label: 'Merit', min: 70, max: 74 },
-                    { label: 'Credit', min: 60, max: 69 },
-                    { label: 'Pass', min: 50, max: 59 },
-                    { label: 'Fail', min: 0, max: 49 },
-                ],
-            },
-            // ── AMERICAS ──
-            usa: {
-                name: 'USA / Canada', flag: '🇺🇸', continent: 'americas', scale: 4.0, label: '4.0 GPA Scale',
-                cgpaLabel: 'Current GPA',
-                grades: [
-                    { grade: 'A', range: '93–100%', points: 4.0, label: 'Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'A-', range: '90–92%', points: 3.7, label: 'Very Good', cls: 'grade-top', isWeak: false },
-                    { grade: 'B+', range: '87–89%', points: 3.3, label: 'Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B', range: '83–86%', points: 3.0, label: 'Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B-', range: '80–82%', points: 2.7, label: 'Above Avg', cls: 'grade-high', isWeak: false },
-                    { grade: 'C+', range: '77–79%', points: 2.3, label: 'Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C', range: '73–76%', points: 2.0, label: 'Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C-', range: '70–72%', points: 1.7, label: 'Below Avg', cls: 'grade-mid', isWeak: false },
-                    { grade: 'D', range: '60–69%', points: 1.0, label: 'Poor', cls: 'grade-low', isWeak: true },
-                    { grade: 'F', range: '0–59%', points: 0.0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Summa Cum Laude', min: 3.90, max: 4.00 },
-                    { label: 'Magna Cum Laude', min: 3.70, max: 3.89 },
-                    { label: 'Cum Laude', min: 3.50, max: 3.69 },
-                    { label: 'Good Standing', min: 2.00, max: 3.49 },
-                    { label: 'Academic Warning', min: 1.00, max: 1.99 },
-                    { label: 'Fail', min: 0, max: 0.99 },
-                ],
-            },
-            brazil: {
-                name: 'Brazil', flag: '🇧🇷', continent: 'americas', scale: 10, label: '0–10 Point Scale',
-                cgpaLabel: 'Current Average /10',
-                grades: [
-                    { grade: '9–10', range: '9–10/10', points: 9.5, label: 'Excelente', cls: 'grade-top', isWeak: false },
-                    { grade: '7–8', range: '7–8/10', points: 7.5, label: 'Bom', cls: 'grade-high', isWeak: false },
-                    { grade: '5–6', range: '5–6/10', points: 5.5, label: 'Regular', cls: 'grade-mid', isWeak: false },
-                    { grade: '0–4', range: '0–4/10', points: 2.0, label: 'Reprovado', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Excelente', min: 9.0, max: 10 },
-                    { label: 'Bom', min: 7.0, max: 8.99 },
-                    { label: 'Regular', min: 5.0, max: 6.99 },
-                    { label: 'Reprovado', min: 0, max: 4.99 },
-                ],
-            },
-            // ── EUROPE ──
-            uk: {
-                name: 'United Kingdom', flag: '🇬🇧', continent: 'europe', scale: 100, label: 'Percentage / Honours',
-                cgpaLabel: 'Current Average %',
-                grades: [
-                    { grade: '1st', range: '70–100%', points: 70, label: 'First Class', cls: 'grade-top', isWeak: false },
-                    { grade: '2:1', range: '60–69%', points: 60, label: 'Upper Second', cls: 'grade-high', isWeak: false },
-                    { grade: '2:2', range: '50–59%', points: 50, label: 'Lower Second', cls: 'grade-mid', isWeak: false },
-                    { grade: '3rd', range: '40–49%', points: 40, label: 'Third Class', cls: 'grade-low', isWeak: false },
-                    { grade: 'Fail', range: '0–39%', points: 0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'First Class Honours', min: 70, max: 100 },
-                    { label: 'Second Class Upper (2:1)', min: 60, max: 69 },
-                    { label: 'Second Class Lower (2:2)', min: 50, max: 59 },
-                    { label: 'Third Class Honours', min: 40, max: 49 },
-                    { label: 'Fail', min: 0, max: 39 },
-                ],
-            },
-            germany: {
-                name: 'Germany', flag: '🇩🇪', continent: 'europe', scale: 4.0, label: '1.0–5.0 (Lower = Better)',
-                cgpaLabel: 'Current GPA',
-                inverted: true,
-                note: 'In Germany, 1.0 is the BEST grade and 5.0 is Fail. Lower GPA = better performance.',
-                grades: [
-                    { grade: '1.0', range: '95–100%', points: 1.0, label: 'Sehr Gut', cls: 'grade-top', isWeak: false },
-                    { grade: '1.3', range: '90–94%', points: 1.3, label: 'Sehr Gut', cls: 'grade-top', isWeak: false },
-                    { grade: '1.7', range: '85–89%', points: 1.7, label: 'Gut', cls: 'grade-high', isWeak: false },
-                    { grade: '2.0', range: '80–84%', points: 2.0, label: 'Gut', cls: 'grade-high', isWeak: false },
-                    { grade: '2.3', range: '75–79%', points: 2.3, label: 'Befriedigend', cls: 'grade-mid', isWeak: false },
-                    { grade: '2.7', range: '70–74%', points: 2.7, label: 'Befriedigend', cls: 'grade-mid', isWeak: false },
-                    { grade: '3.0', range: '65–69%', points: 3.0, label: 'Ausreichend', cls: 'grade-low', isWeak: false },
-                    { grade: '3.3', range: '60–64%', points: 3.3, label: 'Ausreichend', cls: 'grade-low', isWeak: false },
-                    { grade: '3.7', range: '55–59%', points: 3.7, label: 'Ausreichend', cls: 'grade-low', isWeak: false },
-                    { grade: '4.0', range: '50–54%', points: 4.0, label: 'Ausreichend', cls: 'grade-low', isWeak: false },
-                    { grade: '5.0', range: '0–49%', points: 5.0, label: 'Nicht Bestanden', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Sehr Gut (Very Good)', min: 1.0, max: 1.5 },
-                    { label: 'Gut (Good)', min: 1.6, max: 2.5 },
-                    { label: 'Befriedigend (Fair)', min: 2.6, max: 3.5 },
-                    { label: 'Ausreichend (Pass)', min: 3.6, max: 4.0 },
-                    { label: 'Nicht Bestanden (Fail)', min: 4.1, max: 5.0 },
-                ],
-            },
-            france: {
-                name: 'France', flag: '🇫🇷', continent: 'europe', scale: 20, label: '0–20 Point Scale',
-                cgpaLabel: 'Current Average /20',
-                grades: [
-                    { grade: '16–20', range: '16–20/20', points: 18, label: 'Très Bien', cls: 'grade-top', isWeak: false },
-                    { grade: '14–15', range: '14–15/20', points: 14, label: 'Bien', cls: 'grade-high', isWeak: false },
-                    { grade: '12–13', range: '12–13/20', points: 12, label: 'Assez Bien', cls: 'grade-mid', isWeak: false },
-                    { grade: '10–11', range: '10–11/20', points: 10, label: 'Passable', cls: 'grade-low', isWeak: false },
-                    { grade: '0–9', range: '0–9/20', points: 4, label: 'Ajourné', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Très Bien (Excellent)', min: 16, max: 20 },
-                    { label: 'Bien (Good)', min: 14, max: 15 },
-                    { label: 'Assez Bien', min: 12, max: 13 },
-                    { label: 'Passable (Pass)', min: 10, max: 11 },
-                    { label: 'Ajourné (Fail)', min: 0, max: 9 },
-                ],
-            },
-            // ── ASIA ──
-            india: {
-                name: 'India', flag: '🇮🇳', continent: 'asia', scale: 10, label: '10-Point CGPA (UGC)',
-                cgpaLabel: 'Current CGPA /10',
-                note: 'Based on UGC 10-point scale adopted by most Indian universities.',
-                grades: [
-                    { grade: 'O', range: '85–100%', points: 10, label: 'Outstanding', cls: 'grade-top', isWeak: false },
-                    { grade: 'A+', range: '75–84%', points: 9, label: 'Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'A', range: '65–74%', points: 8, label: 'Very Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B+', range: '55–64%', points: 7, label: 'Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B', range: '50–54%', points: 6, label: 'Above Avg', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C', range: '45–49%', points: 5, label: 'Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'P', range: '40–44%', points: 4, label: 'Pass', cls: 'grade-low', isWeak: false },
-                    { grade: 'F', range: '0–39%', points: 0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'Outstanding (O)', min: 9.0, max: 10 },
-                    { label: 'First Class with Dist.', min: 7.5, max: 8.99 },
-                    { label: 'First Class', min: 6.0, max: 7.49 },
-                    { label: 'Second Class', min: 5.0, max: 5.99 },
-                    { label: 'Pass Class', min: 4.0, max: 4.99 },
-                    { label: 'Fail', min: 0, max: 3.99 },
-                ],
-            },
-            china: {
-                name: 'China', flag: '🇨🇳', continent: 'asia', scale: 100, label: '100-Point Percentage',
-                cgpaLabel: 'Current Average %',
-                grades: [
-                    { grade: 'A', range: '90–100%', points: 90, label: '优秀 Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'B', range: '80–89%', points: 80, label: '良好 Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'C', range: '70–79%', points: 70, label: '中等 Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'D', range: '60–69%', points: 60, label: '及格 Pass', cls: 'grade-low', isWeak: false },
-                    { grade: 'F', range: '0–59%', points: 30, label: '不及格 Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: '优秀 Excellent', min: 90, max: 100 },
-                    { label: '良好 Good', min: 80, max: 89 },
-                    { label: '中等 Average', min: 70, max: 79 },
-                    { label: '及格 Pass', min: 60, max: 69 },
-                    { label: '不及格 Fail', min: 0, max: 59 },
-                ],
-            },
-            japan: {
-                name: 'Japan', flag: '🇯🇵', continent: 'asia', scale: 4.0, label: '4.0 GPA Scale',
-                cgpaLabel: 'Current GPA',
-                grades: [
-                    { grade: 'S/A+', range: '90–100%', points: 4.0, label: '優 Excellent', cls: 'grade-top', isWeak: false },
-                    { grade: 'A', range: '80–89%', points: 3.0, label: '良 Good', cls: 'grade-high', isWeak: false },
-                    { grade: 'B', range: '70–79%', points: 2.0, label: '可 Average', cls: 'grade-mid', isWeak: false },
-                    { grade: 'C', range: '60–69%', points: 1.0, label: '可 Pass', cls: 'grade-low', isWeak: false },
-                    { grade: 'F', range: '0–59%', points: 0.0, label: '不可 Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: '優 Excellent', min: 3.5, max: 4.0 },
-                    { label: '良 Good', min: 2.5, max: 3.49 },
-                    { label: '可 Average', min: 1.5, max: 2.49 },
-                    { label: 'Pass', min: 1.0, max: 1.49 },
-                    { label: 'Fail', min: 0, max: 0.99 },
-                ],
-            },
-            // ── OCEANIA ──
-            australia: {
-                name: 'Australia', flag: '🇦🇺', continent: 'oceania', scale: 7, label: '7-Point GPA Scale',
-                cgpaLabel: 'Current GPA /7',
-                note: 'Used by most Australian universities. Some use 4.0 scale.',
-                grades: [
-                    { grade: 'HD', range: '85–100%', points: 7, label: 'High Distinction', cls: 'grade-top', isWeak: false },
-                    { grade: 'D', range: '75–84%', points: 6, label: 'Distinction', cls: 'grade-high', isWeak: false },
-                    { grade: 'C', range: '65–74%', points: 5, label: 'Credit', cls: 'grade-mid', isWeak: false },
-                    { grade: 'P', range: '50–64%', points: 4, label: 'Pass', cls: 'grade-low', isWeak: false },
-                    { grade: 'F', range: '0–49%', points: 0, label: 'Fail', cls: 'grade-fail', isWeak: true },
-                ],
-                standings: [
-                    { label: 'High Distinction', min: 6.5, max: 7.0 },
-                    { label: 'Distinction', min: 5.5, max: 6.49 },
-                    { label: 'Credit', min: 4.5, max: 5.49 },
-                    { label: 'Pass', min: 4.0, max: 4.49 },
-                    { label: 'Fail', min: 0, max: 3.99 },
-                ],
-            },
-        };
-
-        // ════════════════════════════════════════════════════════════
-        // APP STATE
-        // ════════════════════════════════════════════════════════════
+        // ── STORAGE ──
         var semesters = JSON.parse(localStorage.getItem('gg_semesters') || '[]');
         var profile = JSON.parse(localStorage.getItem('gg_profile') || '{}');
-        var selectedCountry = localStorage.getItem('gg_country') || '';
-        var selectedLang = localStorage.getItem('gg_lang') || 'en';
-        var tempCountry = '';
-        var tempLang = '';
-        var selectedContinent = 'africa';
         var deleteIndex = null;
         var chartInstance = null;
 
         function saveToStorage() { localStorage.setItem('gg_semesters', JSON.stringify(semesters)); }
-        function saveProfileStorage() { localStorage.setItem('gg_profile', JSON.stringify(profile)); }
-        function L(key) { return (LANGS[selectedLang] && LANGS[selectedLang][key]) || (LANGS.en[key]) || key; }
-        function fmt(str, obj) { return str.replace(/\{(\w+)\}/g, function (_, k) { return obj[k] || ''; }); }
-        function getSys() { return GRADING_SYSTEMS[selectedCountry] || null; }
+        function saveProfileToStorage() { localStorage.setItem('gg_profile', JSON.stringify(profile)); }
 
-        // ════════════════════════════════════════════════════════════
-        // INIT
-        // ════════════════════════════════════════════════════════════
         window.onload = function () {
-            buildLangGrids();
-            buildContinentTabs();
-            applyLanguage();
-            loadProfileFields();
-            updateCountryUI();
             initCourseRows();
+            loadProfileFields();
             renderAll();
-            // Show setup banner if no country selected
-            var sb = document.getElementById('setupBanner');
-            if (!selectedCountry) sb.style.display = 'flex';
-            else sb.style.display = 'none';
         };
 
-        // ════════════════════════════════════════════════════════════
-        // LANGUAGE
-        // ════════════════════════════════════════════════════════════
-        function buildLangGrids() {
-            var html = Object.keys(LANGS).map(function (k) {
-                var l = LANGS[k];
-                return '<div class="lang-option" id="lo-' + k + '" onclick="selectLang(\'' + k + '\')">' +
-                    '<div class="lang-flag">' + l.flag + '</div>' +
-                    '<div><div class="lang-name">' + l.name + '</div>' +
-                    '<div class="lang-native">' + l.native + '</div></div>' +
-                    '</div>';
-            }).join('');
-            document.getElementById('langGrid').innerHTML = html;
-            document.getElementById('langGrid2').innerHTML = html;
-            highlightLang(selectedLang);
-        }
-
-        function selectLang(k) {
-            tempLang = k;
-            document.querySelectorAll('.lang-option').forEach(function (el) { el.classList.remove('selected'); });
-            document.querySelectorAll('#lo-' + k).forEach(function (el) { el.classList.add('selected'); });
-        }
-
-        function applyLanguage() {
-            var l = LANGS[selectedLang];
-            if (!l) return;
-            document.documentElement.lang = selectedLang;
-            document.documentElement.dir = l.dir || 'ltr';
-            // Update all translatable elements
-            var keys = ['tagline', 'dashboard', 't-dashboard', 't-add', 't-calc', 't-profile',
-                'cgpaLabel', 'semLabel', 'bestLabel', 'coursesLabel', 'standingTitle', 'trendTitle',
-                'weakTitle', 'weakDesc', 'noChartTxt', 'noWeakTxt', 'historyTitle', 'printBtn',
-                'noHistoryTxt', 'addTitle', 'semNameLabel', 'colCourse', 'colUnits', 'colGrade',
-                'addCourseBtn', 'saveSemBtn', 'calcTitle', 'calcDesc', 'curGPALabel', 'curSemLabel',
-                'targetLabel', 'totalSemLabel', 'calcBtn', 'gradingRefTitle', 'pNameLabel', 'pMatricLabel',
-                'pDeptLabel', 'pFacultyLabel', 'pLevelLabel', 'pSessionLabel', 'pUniLabel', 'pCountryLabel',
-                'saveProfileBtn', 'profileSavedTxt', 'sbTitle', 'sbDesc', 'sbBtn',
-                'step1Title', 'step1Desc', 'step2Title', 'step2Desc', 'nextBtn', 'backBtn', 'confirmBtn',
-                'applyLangBtn', 'langModalTitle', 'deleteTitle', 'deleteDesc', 'cancelBtn', 'deleteBtn',
-                'noCountryWarnTxt', 'noCountryWarnBtn', 'plFail', 'plBest', 'printBtn'];
-            keys.forEach(function (k) {
-                var el = document.getElementById(k);
-                if (el && l[k]) el.textContent = l[k];
-            });
-            // Special mappings
-            if (l.tagline) { var tg = document.getElementById('hdrTagline'); if (tg) tg.textContent = l.tagline; }
-            if (l.dashboard) {
-                var td = document.getElementById('t-dashboard'); if (td) td.textContent = l.dashboard;
-                var ta = document.getElementById('t-add'); if (ta) ta.textContent = l.addSem;
-                var tc = document.getElementById('t-calc'); if (tc) tc.textContent = l.calculator;
-                var tp = document.getElementById('t-profile'); if (tp) tp.textContent = l.myProfile;
-            }
-            document.getElementById('langBadgeText').textContent = selectedLang.toUpperCase();
-            highlightLang(selectedLang);
-            renderGradingRef();
-        }
-
-        function highlightLang(k) {
-            document.querySelectorAll('.lang-option').forEach(function (el) { el.classList.remove('selected'); });
-            document.querySelectorAll('#lo-' + k).forEach(function (el) { el.classList.add('selected'); });
-        }
-
-        function openLangModal() { tempLang = selectedLang; highlightLang(selectedLang); openModal('langModal'); }
-        function applyLang() {
-            if (!tempLang) { closeModal('langModal'); return; }
-            selectedLang = tempLang;
-            localStorage.setItem('gg_lang', selectedLang);
-            applyLanguage();
-            renderAll();
-            closeModal('langModal');
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // THEME
-        // ════════════════════════════════════════════════════════════
+        // ── THEME ──
         function toggleTheme() {
             var html = document.documentElement;
             var isDark = html.getAttribute('data-theme') === 'dark';
             html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            var btn = document.getElementById('themeBtn');
-            btn.innerHTML = isDark
-                ? '<i class="fa-solid fa-moon"></i><span id="themeBtnText">Dark</span>'
-                : '<i class="fa-solid fa-sun"></i><span id="themeBtnText">Light</span>';
+            document.getElementById('themeBtn').innerHTML = isDark
+                ? '<i class="fa-solid fa-moon"></i><span>Dark Mode</span>'
+                : '<i class="fa-solid fa-sun"></i><span>Light Mode</span>';
             if (chartInstance) renderChart();
         }
 
-        // ════════════════════════════════════════════════════════════
-        // TABS
-        // ════════════════════════════════════════════════════════════
+        // ── TABS ──
         function switchTab(name, el) {
             document.querySelectorAll('.tab-page').forEach(function (p) { p.classList.remove('active'); });
             document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
             document.getElementById('page-' + name).classList.add('active');
             el.classList.add('active');
-            if (name === 'add') {
-                document.getElementById('noCountryWarn').style.display = selectedCountry ? 'none' : 'block';
-                initCourseRows();
-            }
-            if (name === 'calculator') renderGradingRef();
         }
 
-        // ════════════════════════════════════════════════════════════
-        // SETUP WIZARD
-        // ════════════════════════════════════════════════════════════
-        function openSetup() { tempLang = selectedLang; tempCountry = selectedCountry; highlightLang(selectedLang); goToStep1(); openModal('setupModal'); }
-        function goToStep1() {
-            document.getElementById('setupStep1').style.display = 'block';
-            document.getElementById('setupStep2').style.display = 'none';
-        }
-        function goToStep2() {
-            if (!tempLang) tempLang = selectedLang;
-            document.getElementById('setupStep1').style.display = 'none';
-            document.getElementById('setupStep2').style.display = 'block';
-            renderCountryGrid(selectedContinent);
-        }
-        function confirmSetup() {
-            if (!tempCountry) { alert(L('selectCountryFirst')); return; }
-            selectedLang = tempLang || selectedLang;
-            selectedCountry = tempCountry;
-            localStorage.setItem('gg_lang', selectedLang);
-            localStorage.setItem('gg_country', selectedCountry);
-            applyLanguage();
-            updateCountryUI();
-            initCourseRows();
-            renderAll();
-            renderGradingRef();
-            document.getElementById('setupBanner').style.display = 'none';
-            closeModal('setupModal');
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // CONTINENT & COUNTRY
-        // ════════════════════════════════════════════════════════════
-        function buildContinentTabs() {
-            var html = Object.keys(CONTINENTS).map(function (k) {
-                var c = CONTINENTS[k];
-                return '<button class="continent-tab' + (k === selectedContinent ? ' active' : '') +
-                    '" onclick="switchContinent(\'' + k + '\',this)">' + c.emoji + ' ' + c.name + '</button>';
-            }).join('');
-            document.getElementById('continentTabs').innerHTML = html;
-        }
-
-        function switchContinent(k, el) {
-            selectedContinent = k;
-            document.querySelectorAll('.continent-tab').forEach(function (t) { t.classList.remove('active'); });
-            el.classList.add('active');
-            renderCountryGrid(k);
-        }
-
-        function renderCountryGrid(continent) {
-            var grid = document.getElementById('countryGrid');
-            var countries = Object.keys(GRADING_SYSTEMS).filter(function (k) {
-                return GRADING_SYSTEMS[k].continent === continent;
-            });
-            if (!countries.length) {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:20px;">No countries yet for this continent.</div>';
-                return;
-            }
-            grid.innerHTML = countries.map(function (k) {
-                var s = GRADING_SYSTEMS[k];
-                return '<div class="country-option' + (tempCountry === k ? ' selected' : '') + '" id="co-' + k + '" onclick="selectCountry(\'' + k + '\')">' +
-                    '<div class="c-flag">' + s.flag + '</div>' +
-                    '<div><div class="c-name">' + s.name + '</div>' +
-                    '<div class="c-sys">' + s.label + '</div></div>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function selectCountry(k) {
-            tempCountry = k;
-            document.querySelectorAll('.country-option').forEach(function (el) { el.classList.remove('selected'); });
-            var el = document.getElementById('co-' + k);
-            if (el) el.classList.add('selected');
-        }
-
-        function updateCountryUI() {
-            var sys = getSys();
-            var badge = document.getElementById('countryBadgeText');
-            var cgpaLbl = document.getElementById('cgpaLabel');
-            if (sys) {
-                badge.textContent = sys.flag + ' ' + sys.name;
-                if (cgpaLbl) cgpaLbl.textContent = sys.cgpaLabel;
-                document.getElementById('profileCountryDisplay').value = sys.flag + ' ' + sys.name;
-                // Progress bar labels — FIXED: Fail on left, Best/First Class on right
-                var pl_fail = document.getElementById('pl-fail');
-                var pl_best = document.getElementById('pl-best');
-                var worstStanding = sys.standings[sys.standings.length - 1];
-                var bestStanding = sys.standings[0];
-                if (pl_fail) pl_fail.textContent = worstStanding.label + ' — ' + worstStanding.min;
-                if (pl_best) pl_best.textContent = bestStanding.label + ' — ' + bestStanding.min + '+';
-            } else {
-                badge.textContent = 'Setup';
-                document.getElementById('profileCountryDisplay').value = '';
-            }
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // GRADING REFERENCE
-        // ════════════════════════════════════════════════════════════
-        function renderGradingRef() {
-            var sys = getSys();
-            var title = document.getElementById('gradingRefTitle');
-            var grid = document.getElementById('gradingRefGrid');
-            if (!sys) {
-                if (title) title.textContent = L('gradingRefTitle');
-                if (grid) grid.innerHTML = '<div style="text-align:center;color:var(--text3);padding:16px;"><i class="fa-solid fa-globe" style="font-size:24px;margin-bottom:8px;display:block;"></i>' + L('selectCountryFirst') + '</div>';
-                return;
-            }
-            if (title) title.textContent = sys.flag + ' ' + sys.name + ' — ' + sys.label;
-            var header = '<div class="grading-ref-row" style="background:var(--bg3);">' +
-                '<span style="font-weight:700;color:var(--text3);font-size:11px;">GRADE</span>' +
-                '<span style="font-weight:700;color:var(--text3);font-size:11px;">RANGE</span>' +
-                '<span style="font-weight:700;color:var(--text3);font-size:11px;">PTS</span>' +
-                '<span style="font-weight:700;color:var(--text3);font-size:11px;">LABEL</span>' +
-                '</div>';
-            var rows = sys.grades.map(function (g) {
-                return '<div class="grading-ref-row">' +
-                    '<span class="gr-grade grade-badge ' + g.cls + '">' + g.grade + '</span>' +
-                    '<span class="gr-range">' + g.range + '</span>' +
-                    '<span class="gr-pts">' + g.points + '</span>' +
-                    '<span>' + g.label + '</span>' +
-                    '</div>';
-            }).join('');
-            var noteHtml = sys.note ? '<div style="font-size:12px;color:var(--gold);margin-top:10px;padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:8px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>' + sys.note + '</div>' : '';
-            if (grid) grid.innerHTML = header + rows + noteHtml;
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // WELCOME BANNER
-        // ════════════════════════════════════════════════════════════
+        // ── WELCOME BANNER ──
         function updateWelcomeBanner() {
             var banner = document.getElementById('welcomeBanner');
             var text = document.getElementById('welcomeText');
@@ -2500,15 +1240,13 @@
                 if (profile.level) parts.push(profile.level);
                 if (profile.dept) parts.push(profile.dept);
                 if (profile.matric) parts.push(profile.matric);
-                text.innerHTML = (L('excellent').replace('!', '') === L('excellent').replace('!', '') ? 'Welcome back, ' : '') + parts.join(' &bull; ');
+                text.innerHTML = 'Welcome back, ' + parts.join(' &nbsp;&bull;&nbsp; ');
             } else {
                 banner.classList.remove('show');
             }
         }
 
-        // ════════════════════════════════════════════════════════════
-        // PROFILE
-        // ════════════════════════════════════════════════════════════
+        // ── PROFILE ──
         function loadProfileFields() {
             if (!profile || !profile.name) return;
             document.getElementById('profileName').value = profile.name || '';
@@ -2534,7 +1272,7 @@
                 session: document.getElementById('profileSession').value,
                 uni: document.getElementById('profileUni').value,
             };
-            saveProfileStorage();
+            saveProfileToStorage();
             document.getElementById('profileNameDisplay').textContent = profile.name || 'Your Name';
             document.getElementById('profileSubDisplay').textContent =
                 [profile.level, profile.dept, profile.matric].filter(Boolean).join(' • ');
@@ -2544,19 +1282,16 @@
             setTimeout(function () { msg.style.display = 'none'; }, 3000);
         }
 
-        // ════════════════════════════════════════════════════════════
-        // COURSES
-        // ════════════════════════════════════════════════════════════
+        // ── GRADE DROPDOWN HTML ──
         function gradeOptions(selected) {
-            var sys = getSys();
-            if (!sys) return '<option value="">' + L('selectCountryFirst') + '</option>';
-            return '<option value="">' + L('colGrade') + '</option>' +
-                sys.grades.map(function (g) {
-                    return '<option value="' + g.grade + '"' + (selected === g.grade ? ' selected' : '') + '>' +
-                        g.grade + ' — ' + g.label + ' (' + g.points + ' pts)</option>';
+            var labels = { 'A': 'A — Excellent (5.0) 70+', 'B': 'B — Good (4.0) 60-69', 'C': 'C — Average (3.0) 50-59', 'D': 'D — Below Avg (2.0) 45-49', 'E': 'E — Poor (1.0) 40-44', 'F': 'F — Fail (0.0) Below 40' };
+            return '<option value="">Grade</option>' +
+                ALL_GRADES.map(function (g) {
+                    return '<option value="' + g + '"' + (selected === g ? ' selected' : '') + '>' + labels[g] + '</option>';
                 }).join('');
         }
 
+        // ── COURSE ROWS ──
         function initCourseRows() {
             document.getElementById('coursesList').innerHTML = '';
             for (var i = 0; i < 3; i++) addCourseRow();
@@ -2567,219 +1302,184 @@
             var row = document.createElement('div');
             row.className = 'course-row';
             row.innerHTML =
-                '<input type="text" placeholder="' + L('colCourse') + ' e.g. MTH101" class="course-name">' +
-                '<input type="number" placeholder="' + L('colUnits') + '" class="course-units" min="1" max="6">' +
+                '<input type="text" placeholder="Course name e.g. MTH101" class="course-name">' +
+                '<input type="number" placeholder="Units" class="course-units" min="1" max="6">' +
                 '<select class="grade-select">' + gradeOptions('') + '</select>' +
-                '<button class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>';
+                '<button class="btn-remove" onclick="this.parentElement.remove()" title="Remove"><i class="fa-solid fa-xmark"></i></button>';
             list.appendChild(row);
         }
 
-        // ════════════════════════════════════════════════════════════
-        // GPA CALC
-        // ════════════════════════════════════════════════════════════
-        function getGradePoints(g) {
-            var sys = getSys(); if (!sys) return 0;
-            var found = sys.grades.find(function (x) { return x.grade === g; });
-            return found ? found.points : 0;
-        }
-        function isWeak(g) {
-            var sys = getSys(); if (!sys) return false;
-            var found = sys.grades.find(function (x) { return x.grade === g; });
-            return found ? found.isWeak : false;
-        }
-        function gradeBadgeCls(g) {
-            var sys = getSys(); if (!sys) return 'grade-fail';
-            var found = sys.grades.find(function (x) { return x.grade === g; });
-            return found ? found.cls : 'grade-fail';
-        }
-        function calcGPA(courses) {
-            var sys = getSys(); if (!sys) return 0;
-            var tp = 0, tu = 0;
-            courses.forEach(function (c) { tp += getGradePoints(c.grade) * c.units; tu += c.units; });
-            return tu > 0 ? Math.round((tp / tu) * 100) / 100 : 0;
-        }
-        function calcCGPA() {
-            if (!semesters.length) return 0;
-            return (semesters.reduce(function (a, b) { return a + b.gpa; }, 0) / semesters.length).toFixed(2);
-        }
-        function getStanding(gpa) {
-            var sys = getSys(); if (!sys) return null;
-            var inv = sys.inverted;
-            for (var i = 0; i < sys.standings.length; i++) {
-                var s = sys.standings[i];
-                if (!inv) { if (gpa >= s.min && gpa <= s.max) return s.label; }
-                else { if (gpa >= s.min && gpa <= s.max) return s.label; }
-            }
-            return null;
-        }
-        function getGPAColor(gpa) {
-            var sys = getSys(); if (!sys) return 'gpa-4';
-            var pct;
-            if (sys.inverted) pct = ((sys.scale - gpa) / (sys.scale - 1)) * 100;
-            else pct = (gpa / sys.scale) * 100;
-            if (pct >= 80) return 'gpa-5';
-            if (pct >= 60) return 'gpa-4';
-            if (pct >= 40) return 'gpa-3';
-            if (pct >= 20) return 'gpa-2';
-            return 'gpa-1';
-        }
-        function getProgressPct(gpa) {
-            var sys = getSys(); if (!sys) return 0;
-            if (sys.inverted) return Math.min(Math.max(((sys.scale - gpa) / (sys.scale - 1)) * 100, 0), 100);
-            return Math.min((gpa / sys.scale) * 100, 100);
+        // ── GPA CALCULATION ──
+        function calculateGPA(courses) {
+            var totalPoints = 0, totalUnits = 0;
+            courses.forEach(function (c) {
+                totalPoints += (GRADE_POINTS[c.grade] || 0) * c.units;
+                totalUnits += c.units;
+            });
+            return totalUnits > 0 ? Math.round((totalPoints / totalUnits) * 100) / 100 : 0;
         }
 
-        // ════════════════════════════════════════════════════════════
-        // SAVE SEMESTER
-        // ════════════════════════════════════════════════════════════
+        // ── SAVE SEMESTER ──
         function saveSemester() {
-            if (!selectedCountry) { alert(L('selectCountryFirst')); openSetup(); return; }
             var name = document.getElementById('semesterName').value.trim();
-            if (!name) { alert(L('semNameLabel') + ' ?'); return; }
-            var rows = document.querySelectorAll('.course-row'), courses = [];
+            if (!name) { alert('Please enter a semester name!'); return; }
+            var rows = document.querySelectorAll('.course-row');
+            var courses = [];
             rows.forEach(function (row) {
-                var n = row.querySelector('.course-name').value.trim();
-                var u = parseInt(row.querySelector('.course-units').value);
-                var g = row.querySelector('.grade-select').value;
-                if (n && u && g) courses.push({ name: n, units: u, grade: g });
+                var cname = row.querySelector('.course-name').value.trim();
+                var units = parseInt(row.querySelector('.course-units').value);
+                var grade = row.querySelector('.grade-select').value;
+                if (cname && units && grade) courses.push({ name: cname, units: units, grade: grade });
             });
-            if (!courses.length) { alert(L('addCourseBtn') + ' !'); return; }
-            semesters.push({ name: name, courses: courses, gpa: calcGPA(courses), country: selectedCountry, lang: selectedLang });
-            saveToStorage(); renderAll();
+            if (!courses.length) { alert('Please add at least one course with a grade!'); return; }
+            semesters.push({ name: name, courses: courses, gpa: calculateGPA(courses) });
+            saveToStorage();
+            renderAll();
             document.getElementById('semesterName').value = '';
             initCourseRows();
-            alert(L('semSaved'));
+            alert('Semester saved successfully!');
             switchTab('dashboard', document.getElementById('tab-dashboard'));
         }
 
-        // ════════════════════════════════════════════════════════════
-        // CALCULATOR
-        // ════════════════════════════════════════════════════════════
+        // ── HELPERS ──
+        function getGPAColor(gpa) {
+            if (gpa >= 4.5) return 'gpa-5';
+            if (gpa >= 3.5) return 'gpa-4';
+            if (gpa >= 2.5) return 'gpa-3';
+            if (gpa >= 1.5) return 'gpa-2';
+            return 'gpa-1';
+        }
+
+        function calculateCGPA() {
+            if (!semesters.length) return 0;
+            return (semesters.reduce(function (a, b) { return a + b.gpa; }, 0) / semesters.length).toFixed(2);
+        }
+
+        function getStanding(gpa) {
+            return gpa >= 4.5 ? 'First Class' : gpa >= 3.5 ? 'Second Class Upper' : gpa >= 2.5 ? 'Second Class Lower' : gpa >= 1.5 ? 'Third Class' : gpa >= 1.0 ? 'Pass' : 'Fail';
+        }
+
+        // ── TARGET CALCULATOR ──
         function calculateTarget() {
-            var sys = getSys();
-            var cur = parseFloat(document.getElementById('currentCGPA').value);
-            var cs = parseInt(document.getElementById('currentSem').value);
-            var tgt = parseFloat(document.getElementById('targetGPA').value);
-            var tot = parseInt(document.getElementById('totalSem').value);
-            var res = document.getElementById('targetResult');
+            var currentCGPA = parseFloat(document.getElementById('currentCGPA').value);
+            var currentSem = parseInt(document.getElementById('currentSem').value);
+            var target = parseFloat(document.getElementById('targetGPA').value);
+            var totalSem = parseInt(document.getElementById('totalSem').value);
+            var result = document.getElementById('targetResult');
 
-            if (isNaN(cur)) { alert(L('enterGPA')); return; }
-            if (!cs) { alert(L('enterSem')); return; }
-            if (!tgt) { alert(L('enterTarget')); return; }
-            if (!tot) { alert(L('enterTotal')); return; }
-            if (cs >= tot) { alert(L('semBeforeTotal')); return; }
+            if (isNaN(currentCGPA)) { alert('Enter your current CGPA!'); return; }
+            if (!currentSem) { alert('Enter your current semester!'); return; }
+            if (!target) { alert('Enter your target CGPA!'); return; }
+            if (!totalSem) { alert('Enter total semesters!'); return; }
+            if (target > 5) { alert('Maximum CGPA is 5.0!'); return; }
+            if (currentSem >= totalSem) { alert('Current semester must be less than total!'); return; }
 
-            var rem = tot - cs;
-            var needed = ((tgt * tot) - (cur * cs)) / rem;
-            var standing = getStanding(tgt) || 'Target';
-            var maxScale = sys ? sys.scale : 4.0;
-            var inv = sys && sys.inverted;
-            var diff = '';
-            if (!inv) {
-                var pct = (needed / maxScale) * 100;
-                diff = pct >= 85 ? '<span style="color:#ef4444;">' + L('veryDemanding') + '</span>' :
-                    pct >= 65 ? '<span style="color:#f59e0b;">' + L('challenging') + '</span>' :
-                        pct >= 45 ? '<span style="color:#22c55e;">' + L('manageable') + '</span>' :
-                            '<span style="color:#38bdf8;">' + L('easy') + '</span>';
-            }
+            var remaining = totalSem - currentSem;
+            var needed = ((target * totalSem) - (currentCGPA * currentSem)) / remaining;
+            var standing = getStanding(target);
+            var difficulty = needed >= 4.5 ? '<span style="color:#ef4444;"><i class="fa-solid fa-fire"></i> Very Demanding</span>' :
+                needed >= 3.5 ? '<span style="color:#f59e0b;"><i class="fa-solid fa-bolt"></i> Challenging</span>' :
+                    needed >= 2.5 ? '<span style="color:#22c55e;"><i class="fa-solid fa-check"></i> Manageable</span>' :
+                        '<span style="color:#38bdf8;"><i class="fa-solid fa-thumbs-up"></i> Easy</span>';
 
-            res.classList.add('show');
-            var tooHigh = !inv ? (needed > maxScale) : (needed < 1.0);
-            var tooLow = !inv ? (needed <= 0) : (needed >= maxScale);
+            result.classList.add('show');
 
-            if (tooHigh) {
-                var maxP = !inv ? ((maxScale * rem) + (cur * cs)) / tot : ((1.0 * rem) + (cur * cs)) / tot;
+            if (needed > 5.0) {
+                var maxPossible = ((5.0 * remaining) + (currentCGPA * currentSem)) / totalSem;
+                var targets = [
+                    { gpa: 4.5, label: 'First Class', color: '#22c55e', icon: 'fa-medal' },
+                    { gpa: 3.5, label: '2nd Class Upper', color: '#38bdf8', icon: 'fa-award' },
+                    { gpa: 2.5, label: '2nd Class Lower', color: '#f59e0b', icon: 'fa-ribbon' },
+                    { gpa: 1.5, label: 'Third Class', color: '#f97316', icon: 'fa-certificate' },
+                ];
                 var rHTML = '';
-                if (sys) {
-                    sys.standings.slice(0, 4).forEach(function (st) {
-                        var nX = ((st.min * tot) - (cur * cs)) / rem;
-                        var gX = ((st.min * rem) + (cur * cs)) / tot;
-                        var ok = !inv ? (nX <= maxScale && nX > 0) : (nX >= 1.0 && nX <= 4.0);
-                        if (ok) rHTML += '<div style="background:rgba(56,189,248,0.08);border-left:3px solid var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:8px;">' +
-                            '<div style="font-weight:700;color:var(--accent);font-size:13px;"><i class="fa-solid fa-award"></i> ' + st.label + ' — GPA ' + gX.toFixed(2) + '</div>' +
-                            '<div style="font-size:12px;color:var(--text3);margin-top:3px;">' + fmt(L('perSem'), { r: rem }) + ': <strong style="color:var(--accent);">' + nX.toFixed(2) + '</strong></div>' +
+                targets.forEach(function (t) {
+                    var needX = ((t.gpa * totalSem) - (currentCGPA * currentSem)) / remaining;
+                    var cgpaX = ((t.gpa * remaining) + (currentCGPA * currentSem)) / totalSem;
+                    if (needX <= 5.0) {
+                        rHTML += '<div style="background:rgba(0,0,0,0.15);border-left:3px solid ' + t.color + ';border-radius:8px;padding:12px;margin-bottom:8px;">' +
+                            '<div style="font-weight:700;color:' + t.color + ';"><i class="fa-solid ' + t.icon + '"></i> ' + t.label + ' — Finish with CGPA ' + cgpaX.toFixed(2) + '</div>' +
+                            '<div style="font-size:12px;color:var(--text3);margin-top:3px;">Score at least <strong style="color:' + t.color + ';">' + needX.toFixed(2) + ' GPA</strong> in each of your ' + remaining + ' remaining semester(s)</div>' +
                             '</div>';
-                    });
-                }
-                res.style.borderLeftColor = '#ef4444';
-                res.innerHTML =
+                    }
+                });
+                result.style.borderLeftColor = '#ef4444';
+                result.innerHTML =
                     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
                     '<i class="fa-solid fa-circle-xmark" style="color:#ef4444;font-size:18px;"></i>' +
-                    '<strong style="color:#ef4444;font-size:15px;">' + fmt(L('notAchievable'), { t: tgt }) + '</strong></div>' +
-                    '<p style="color:var(--text2);font-size:13px;margin-bottom:12px;">' +
-                    fmt(L('bestPossible'), { m: maxP.toFixed(2) }) + '</p>' +
-                    (rHTML ? '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;"><i class="fa-solid fa-lightbulb" style="color:var(--gold);"></i> ' + L('whatYouCan') + '</div>' + rHTML : '');
-            } else if (tooLow) {
-                res.style.borderLeftColor = '#22c55e';
-                res.innerHTML =
+                    '<strong style="color:#ef4444;font-size:15px;">CGPA of ' + target + ' is Not Achievable</strong></div>' +
+                    '<p style="color:var(--text2);font-size:13px;margin-bottom:12px;">With CGPA <strong>' + currentCGPA + '</strong> and <strong>' + remaining + '</strong> semester(s) left, you would need <strong style="color:#ef4444;">' + needed.toFixed(2) + '</strong> GPA/semester — which exceeds 5.0.<br>' +
+                    '<span style="color:var(--text3);font-size:12px;">Best possible CGPA if you score 5.0 in all remaining semesters: <strong style="color:var(--accent);">' + maxPossible.toFixed(2) + '</strong></span></p>' +
+                    '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;"><i class="fa-solid fa-lightbulb" style="color:var(--gold);"></i> What you CAN realistically achieve:</div>' +
+                    rHTML;
+
+            } else if (needed <= 0) {
+                result.style.borderLeftColor = '#22c55e';
+                result.innerHTML =
                     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
                     '<i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:18px;"></i>' +
-                    '<strong style="color:#22c55e;font-size:15px;">' + L('alreadyAchieved') + '</strong></div>' +
-                    '<span style="color:var(--text2);font-size:13px;">' + fmt(L('alreadyTxt'), { s: standing }) + '</span>';
+                    '<strong style="color:#22c55e;font-size:15px;">Already Achieved!</strong></div>' +
+                    '<span style="color:var(--text2);font-size:13px;">Your CGPA of <strong>' + currentCGPA + '</strong> already meets your target. Maintain your performance to graduate with <strong>' + standing + '</strong>!</span>';
+
             } else {
-                res.style.borderLeftColor = 'var(--accent)';
-                res.innerHTML =
+                result.style.borderLeftColor = 'var(--accent)';
+                result.innerHTML =
                     '<div style="margin-bottom:14px;">' +
-                    '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">' + fmt(L('youNeed'), { s: standing }) + '</div>' +
-                    '<div style="font-size:36px;font-weight:700;color:var(--accent);">' + needed.toFixed(2) + (sys ? ' / ' + sys.scale : '') + '</div>' +
-                    '<div style="font-size:13px;color:var(--text2);">' + fmt(L('perSem'), { r: rem }) + '</div>' +
+                    '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">To graduate with <strong>' + standing + '</strong>, you need:</div>' +
+                    '<div style="font-size:36px;font-weight:700;color:var(--accent);">' + needed.toFixed(2) + ' GPA</div>' +
+                    '<div style="font-size:13px;color:var(--text2);">per semester for your remaining <strong>' + remaining + '</strong> semester(s)</div>' +
                     '</div>' +
                     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px;">' +
-                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">' + L('curGPALabel') + '</div><strong>' + cur + '</strong></div>' +
-                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">' + L('targetLabel') + '</div><strong style="color:var(--accent);">' + tgt + '</strong></div>' +
-                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">' + L('semsLeft') + '</div><strong>' + rem + '</strong></div>' +
-                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">' + L('difficulty') + '</div>' + diff + '</div>' +
+                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">Current CGPA</div><strong>' + currentCGPA + '</strong></div>' +
+                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">Target CGPA</div><strong style="color:var(--accent);">' + target + '</strong></div>' +
+                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">Semesters Left</div><strong>' + remaining + '</strong></div>' +
+                    '<div style="padding:8px;background:var(--bg2);border-radius:8px;"><div style="color:var(--text3);">Difficulty</div>' + difficulty + '</div>' +
                     '</div>' +
-                    '<div style="font-size:13px;color:var(--text2);"><i class="fa-solid fa-graduation-cap" style="margin-right:4px;"></i>' + L('targetStanding') + ': <strong style="color:var(--accent);">' + standing + '</strong></div>';
+                    '<div style="font-size:13px;color:var(--text2);"><i class="fa-solid fa-graduation-cap" style="margin-right:4px;"></i>Target: <strong style="color:var(--accent);">' + standing + '</strong></div>';
             }
         }
 
-        // ════════════════════════════════════════════════════════════
-        // DELETE
-        // ════════════════════════════════════════════════════════════
-        function openDeleteModal(i) { deleteIndex = i; openModal('deleteModal'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        // ── DELETE ──
+        function openDeleteModal(i) { deleteIndex = i; document.getElementById('deleteModal').classList.add('show'); }
+        function closeModal() { document.getElementById('deleteModal').classList.remove('show'); deleteIndex = null; }
         function confirmDelete() {
             if (deleteIndex === null) return;
-            semesters.splice(deleteIndex, 1); saveToStorage(); closeModal('deleteModal'); renderAll();
+            semesters.splice(deleteIndex, 1); saveToStorage(); closeModal(); renderAll();
         }
 
-        // ════════════════════════════════════════════════════════════
-        // UPDATE SEMESTER
-        // ════════════════════════════════════════════════════════════
-        function updateSemester(i) {
-            var card = document.getElementById('semCard-' + i);
-            var rows = card.querySelectorAll('.edit-row'), courses = [];
+        // ── UPDATE SEMESTER ──
+        function updateSemester(index) {
+            var card = document.getElementById('semCard-' + index);
+            var rows = card.querySelectorAll('.edit-row');
+            var courses = [];
             rows.forEach(function (row) {
                 var n = row.querySelector('.edit-name').value.trim();
                 var u = parseInt(row.querySelector('.edit-units').value);
                 var g = row.querySelector('.edit-grade').value;
                 if (n && u && g) courses.push({ name: n, units: u, grade: g });
             });
-            if (!courses.length) { alert(L('keepOne')); return; }
+            if (!courses.length) { alert('Keep at least one course!'); return; }
             var semName = card.querySelector('.sem-name-input').value.trim();
-            semesters[i] = { name: semName, courses: courses, gpa: calcGPA(courses), country: selectedCountry };
-            saveToStorage(); renderAll(); alert(L('semUpdated'));
+            semesters[index] = { name: semName, courses: courses, gpa: calculateGPA(courses) };
+            saveToStorage(); renderAll(); alert('Semester updated!');
         }
+
         function toggleSemester(i) { document.getElementById('semCard-' + i).classList.toggle('expanded'); }
 
-        // ════════════════════════════════════════════════════════════
-        // CHART
-        // ════════════════════════════════════════════════════════════
+        // ── CHART ──
         function renderChart() {
             var canvas = document.getElementById('gpaChart');
             var msg = document.getElementById('noChartMsg');
             if (semesters.length < 2) {
                 msg.style.display = 'block'; canvas.style.display = 'none';
-                if (chartInstance) { chartInstance.destroy(); chartInstance = null; } return;
+                if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+                return;
             }
             msg.style.display = 'none'; canvas.style.display = 'block';
             var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             var gc = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
             var tc = isDark ? '#94a3b8' : '#475569';
             if (chartInstance) chartInstance.destroy();
-            var sys = getSys(); var maxY = sys ? sys.scale : 5;
             chartInstance = new Chart(canvas, {
                 type: 'line',
                 data: {
@@ -2789,8 +1489,7 @@
                         borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.08)',
                         borderWidth: 2.5, tension: 0.4, fill: true,
                         pointBackgroundColor: semesters.map(function (s) {
-                            var pct = getProgressPct(s.gpa);
-                            return pct >= 70 ? '#22c55e' : pct >= 50 ? '#38bdf8' : pct >= 30 ? '#f59e0b' : '#ef4444';
+                            return s.gpa >= 4.5 ? '#22c55e' : s.gpa >= 3.5 ? '#38bdf8' : s.gpa >= 2.5 ? '#f59e0b' : '#ef4444';
                         }),
                         pointRadius: 6, pointHoverRadius: 8
                     }]
@@ -2798,7 +1497,7 @@
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: {
-                        y: { min: 0, max: maxY, grid: { color: gc }, ticks: { color: tc } },
+                        y: { min: 0, max: 5, grid: { color: gc }, ticks: { color: tc, stepSize: 1 } },
                         x: { grid: { color: gc }, ticks: { color: tc } }
                     },
                     plugins: { legend: { display: false } }
@@ -2806,38 +1505,35 @@
             });
         }
 
-        // ════════════════════════════════════════════════════════════
-        // WEAK COURSES
-        // ════════════════════════════════════════════════════════════
+        // ── WEAK COURSES ──
         function renderWeakCourses() {
             var container = document.getElementById('weakCoursesList');
             var weak = [];
             semesters.forEach(function (s) {
                 s.courses.forEach(function (c) {
-                    if (isWeak(c.grade)) weak.push({ name: c.name, grade: c.grade, units: c.units, semester: s.name });
+                    if (c.grade === 'E' || c.grade === 'F') weak.push({ name: c.name, grade: c.grade, units: c.units, semester: s.name });
                 });
             });
             if (!weak.length) {
-                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green);opacity:1;"></i><span>' + L('noWeakTxt') + '</span></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green);opacity:1;"></i>No weak courses!<br>All courses are passing.</div>';
                 return;
             }
             container.innerHTML = weak.map(function (c) {
+                var isF = c.grade === 'F';
+                var col = isF ? '#fca5a5' : '#ef4444';
                 return '<div class="weak-item">' +
                     '<div><div class="weak-item-name">' + c.name + '</div>' +
-                    '<div class="weak-item-info"><i class="fa-solid fa-calendar-xmark" style="margin-right:3px;"></i>' + c.semester + ' &bull; ' + c.units + ' ' + L('colUnits') + '</div></div>' +
+                    '<div class="weak-item-info"><i class="fa-solid fa-calendar-xmark" style="margin-right:3px;"></i>' + c.semester + ' &bull; ' + c.units + ' units</div></div>' +
                     '<div style="text-align:right;">' +
-                    '<div class="grade-badge ' + gradeBadgeCls(c.grade) + '" style="width:auto;padding:4px 10px;margin-bottom:4px;">' + c.grade + '</div>' +
-                    '<div style="font-size:11px;color:var(--text3);">' + getGradePoints(c.grade) + ' pts</div>' +
+                    '<div class="grade-badge ' + GRADE_CLASS[c.grade] + '" style="width:auto;padding:4px 10px;margin-bottom:4px;">Grade ' + c.grade + '</div>' +
+                    '<div style="font-size:11px;color:var(--text3);">' + GRADE_POINTS[c.grade] + ' pts &bull; ' + (isF ? 'Fail' : 'Poor') + '</div>' +
                     '</div></div>';
             }).join('');
         }
 
-        // ════════════════════════════════════════════════════════════
-        // RENDER ALL
-        // ════════════════════════════════════════════════════════════
+        // ── RENDER ALL ──
         function renderAll() {
-            var sys = getSys();
-            var cgpa = parseFloat(calcCGPA());
+            var cgpa = parseFloat(calculateCGPA());
             var best = semesters.length ? Math.max.apply(null, semesters.map(function (s) { return s.gpa; })).toFixed(2) : '—';
             var tc = semesters.reduce(function (a, s) { return a + s.courses.length; }, 0);
 
@@ -2847,90 +1543,73 @@
             document.getElementById('bestGPA').textContent = best;
             document.getElementById('totalCoursesCount').textContent = tc;
 
-            // Progress bar — FIXED direction
-            var pct = semesters.length ? getProgressPct(cgpa) : 0;
+            var pct = semesters.length ? Math.min((cgpa / 5) * 100, 100) : 0;
             document.getElementById('progressFill').style.width = pct + '%';
 
             var standing = semesters.length ? getStanding(cgpa) : null;
             document.getElementById('standingBadge').innerHTML = (standing && semesters.length) ?
-                '<i class="fa-solid fa-circle-dot" style="color:var(--accent);margin-right:6px;"></i>' +
-                L('standingLabel') + ': <strong style="color:var(--accent);">' + standing + '</strong> &nbsp;&bull;&nbsp; GPA: <strong>' + cgpa.toFixed(2) + '</strong>' + (sys ? ' / ' + sys.scale : '') :
-                '<i class="fa-solid fa-circle-info" style="margin-right:6px;opacity:0.5;"></i>' +
-                (sys ? L('noHistoryTxt') : L('sbDesc'));
+                '<i class="fa-solid fa-circle-dot" style="color:var(--accent);margin-right:6px;"></i>Current Standing: <strong style="color:var(--accent);">' + standing + '</strong> &nbsp;&bull;&nbsp; CGPA: <strong>' + cgpa.toFixed(2) + '</strong>' :
+                '<i class="fa-solid fa-circle-info" style="margin-right:6px;opacity:0.5;"></i>Add semesters to see your standing';
 
-            // Risk banner
             var banner = document.getElementById('riskBanner');
-            if (semesters.length && sys) {
-                var pct2 = getProgressPct(cgpa);
-                if (pct2 < 20) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-circle-radiation" style="flex-shrink:0;"></i><span><strong>' + L('dangerZone') + '</strong> ' + L('dangerTxt') + '</span>'; }
-                else if (pct2 < 40) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i><span><strong>' + L('warning') + '</strong> ' + L('warningTxt') + '</span>'; }
-                else if (pct2 >= 85) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-trophy" style="flex-shrink:0;color:var(--green);"></i><span><strong>' + L('excellent') + '</strong> ' + L('excellentTxt') + '</span>'; }
-                else if (pct2 >= 65) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-circle-check" style="flex-shrink:0;color:var(--green);"></i><span><strong>' + L('goodStanding') + '</strong> ' + L('goodTxt') + '</span>'; }
+            if (semesters.length) {
+                if (cgpa < 1.0) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-circle-radiation" style="flex-shrink:0;"></i><span><strong>Danger Zone:</strong> Your CGPA is critically low. Please speak to your academic advisor immediately.</span>'; }
+                else if (cgpa < 1.5) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i><span><strong>Warning:</strong> Your CGPA is below average. More effort is needed this semester.</span>'; }
+                else if (cgpa < 2.5) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i><span><strong>Below Average:</strong> Your CGPA needs improvement. Focus on your weak courses.</span>'; }
+                else if (cgpa >= 4.5) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-trophy" style="flex-shrink:0;color:var(--green);"></i><span><strong>Excellent!</strong> You are on First Class standing. Keep up the outstanding work!</span>'; }
+                else if (cgpa >= 3.5) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-circle-check" style="flex-shrink:0;color:var(--green);"></i><span><strong>Good Standing:</strong> You are on Second Class Upper. Keep pushing for First Class!</span>'; }
                 else { banner.className = 'risk-banner'; }
             } else { banner.className = 'risk-banner'; }
 
             renderChart();
             renderWeakCourses();
             updateWelcomeBanner();
-            updateCountryUI();
 
             var list = document.getElementById('historyList');
             if (!semesters.length) {
-                list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-folder-open"></i><span>' + L('noHistoryTxt') + '</span></div>';
+                list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-folder-open"></i>No semesters yet.<br>Go to Add Semester to get started!</div>';
                 return;
             }
 
             list.innerHTML = semesters.map(function (s, i) {
-                var semSys = GRADING_SYSTEMS[s.country] || sys;
                 var gc = getGPAColor(s.gpa);
-                var sl = getStanding(s.gpa) || '—';
+                var sl = getStanding(s.gpa);
                 var tu = s.courses.reduce(function (a, c) { return a + c.units; }, 0);
-                var cFlag = s.country && GRADING_SYSTEMS[s.country] ? '<span style="font-size:11px;margin-left:5px;">' + GRADING_SYSTEMS[s.country].flag + '</span>' : '';
+
                 var rows = s.courses.map(function (c) {
-                    var wk = isWeak(c.grade);
-                    var bc = gradeBadgeCls(c.grade);
-                    return '<tr class="edit-row' + (wk ? ' weak-course' : '') + '">' +
-                        '<td><input class="edit-name" value="' + c.name + '">' + (wk ? '<div class="weak-label"><i class="fa-solid fa-arrow-trend-down"></i> ' + L('weakTitle').split(' ')[0] + '</div>' : '') + '</td>' +
+                    var isWeak = c.grade === 'E' || c.grade === 'F';
+                    return '<tr class="edit-row' + (isWeak ? ' weak-course' : '') + '">' +
+                        '<td><input class="edit-name" value="' + c.name + '">' + (isWeak ? '<div class="weak-label"><i class="fa-solid fa-arrow-trend-down"></i> Dragging GPA</div>' : '') + '</td>' +
                         '<td><input class="edit-units" type="number" value="' + c.units + '" style="width:55px;"></td>' +
                         '<td><select class="edit-grade">' + gradeOptions(c.grade) + '</select></td>' +
                         '</tr>';
                 }).join('');
+
                 return '<div class="semester-card" id="semCard-' + i + '">' +
                     '<div class="semester-card-header" onclick="toggleSemester(' + i + ')">' +
-                    '<div><input class="sem-name-input" value="' + s.name + '" onclick="event.stopPropagation()">' +
-                    '<div class="sem-info"><i class="fa-solid fa-book" style="margin-right:3px;"></i>' + s.courses.length + ' ' + L('colCourse').toLowerCase() + 's &bull; ' + L('tapToExpand') + cFlag + '</div>' +
+                    '<div>' +
+                    '<input class="sem-name-input" value="' + s.name + '" onclick="event.stopPropagation()">' +
+                    '<div class="sem-info"><i class="fa-solid fa-book" style="margin-right:3px;"></i>' + s.courses.length + ' courses &bull; tap to expand &amp; edit</div>' +
                     '</div>' +
-                    '<div style="display:flex;align-items:center;gap:12px;">' +
+                    '<div style="display:flex;align-items:center;gap:14px;">' +
                     '<div style="text-align:center;"><div class="sem-gpa ' + gc + '">' + s.gpa + '</div><div class="sem-info">GPA</div></div>' +
                     '<i class="fa-solid fa-chevron-down expand-icon"></i>' +
                     '</div></div>' +
                     '<div class="semester-breakdown">' +
                     '<table class="breakdown-table">' +
-                    '<thead><tr><th>' + L('colCourse') + '</th><th>' + L('colUnits') + '</th><th>' + L('colGrade') + '</th></tr></thead>' +
-                    '<tbody>' + rows + '</tbody></table>' +
+                    '<thead><tr><th>Course</th><th>Units</th><th>Grade</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody>' +
+                    '</table>' +
                     '<div class="breakdown-stats">' +
-                    '<div><div class="bs-label"><i class="fa-solid fa-sigma"></i> ' + L('totalUnits') + '</div><div class="bs-val">' + tu + '</div></div>' +
-                    '<div><div class="bs-label"><i class="fa-solid fa-star"></i> ' + L('semesterGPA') + '</div><div class="bs-val ' + gc + '">' + s.gpa + '</div></div>' +
-                    '<div><div class="bs-label"><i class="fa-solid fa-ranking-star"></i> ' + L('standingLabel') + '</div><div class="bs-val" style="font-size:11px;">' + sl + '</div></div>' +
+                    '<div><div class="bs-label"><i class="fa-solid fa-sigma"></i> Total Units</div><div class="bs-val">' + tu + '</div></div>' +
+                    '<div><div class="bs-label"><i class="fa-solid fa-star"></i> Semester GPA</div><div class="bs-val ' + gc + '">' + s.gpa + '</div></div>' +
+                    '<div><div class="bs-label"><i class="fa-solid fa-ranking-star"></i> Standing</div><div class="bs-val">' + sl + '</div></div>' +
                     '</div>' +
                     '<div class="breakdown-actions">' +
-                    '<button class="btn btn-warning" onclick="updateSemester(' + i + ')"><i class="fa-solid fa-floppy-disk"></i> ' + L('saveChanges') + '</button>' +
-                    '<button class="btn btn-danger" onclick="openDeleteModal(' + i + ')"><i class="fa-solid fa-trash"></i> ' + L('deleteBtn') + '</button>' +
+                    '<button class="btn btn-warning" onclick="updateSemester(' + i + ')"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>' +
+                    '<button class="btn btn-danger" onclick="openDeleteModal(' + i + ')"><i class="fa-solid fa-trash"></i> Delete</button>' +
                     '</div></div></div>';
             }).join('');
-        }
-
-        // Close modals on backdrop click
-        document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
-            overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.classList.remove('show'); });
-        });
-    </script>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/service-worker.js');
-            });
         }
     </script>
 </body>
