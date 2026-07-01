@@ -560,11 +560,16 @@ function setSyncStatus(status) {
 
 // ── AUTH STATE LISTENER ──
 sb.auth.onAuthStateChange(async function(event, session) {
+    if (event === 'SIGNED_OUT') { showAuthScreen(); return; }
     if (session && session.user) {
         currentUser = session.user;
         document.getElementById('user-email-display').textContent = currentUser.email;
         setSyncStatus('loading');
-        await loadData();
+        try {
+            await loadData();
+        } catch(e) {
+            setSyncStatus('error');
+        }
         showAppScreen();
         initCourseRows();
         renderAll();
