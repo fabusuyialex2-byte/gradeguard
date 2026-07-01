@@ -212,6 +212,7 @@
         .empty-state i { font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.4; }
         @media print { header, .tabs, .tab-page:not(#page-dashboard), .btn, .modal-overlay, .breakdown-actions { display: none !important; } .tab-page#page-dashboard { display: block !important; } body { background: white !important; color: black !important; } }
         @media(max-width:768px) { .main-grid, .stats-grid, .profile-grid, .form-row { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } .grading-grid { grid-template-columns: repeat(3, 1fr); } header { padding: 0 20px; } .tab span { display: none; } .header-right { gap: 6px; } }
+        @media(max-width:768px) { .header-right .sync-badge { display: none; } #user-email-display { display: none !important; } .signout-btn span { display: none; } .theme-toggle span { display: none; } .signout-btn { padding: 8px 10px; } .theme-toggle { padding: 8px 10px; } }
     </style>
 </head>
 <body>
