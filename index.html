@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeGuard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Chart.js and jsPDF are no longer loaded here — they're fetched on demand (see loadScript/
+         ensureChartJs/ensurePdfLibs in the script) so a student who never exports a PDF or hasn't
+         added 2+ semesters isn't paying the download cost on first load. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://ybdahqqydggbwohmkxqe.supabase.co; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self' https://ybdahqqydggbwohmkxqe.supabase.co https://*.supabase.co wss://ybdahqqydggbwohmkxqe.supabase.co https://cdn.jsdelivr.net https://tessdata.projectnaptha.com;">
+    <style>
+        :root[data-theme="dark"] {
+            --bg: #0f172a; --bg2: #1e293b; --bg3: #0a1020; --border: #334155;
+            --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+            --card: #1e293b; --card2: #0f172a;
+            --header: linear-gradient(135deg, #1e3a5f, #0f766e);
+            --accent: #38bdf8; --accent2: #0284c7;
+            --green: #22c55e; --red: #ef4444; --gold: #f59e0b; --purple: #a78bfa;
+        }
+        :root[data-theme="light"] {
+            --bg: #f1f5f9; --bg2: #ffffff; --bg3: #e2e8f0; --border: #cbd5e1;
+            --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+            --card: #ffffff; --card2: #f8fafc;
+            --header: linear-gradient(135deg, #1e3a5f, #0f766e);
+            --accent: #0284c7; --accent2: #0369a1;
+            --green: #16a34a; --red: #dc2626; --gold: #d97706; --purple: #7c3aed;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 200;
+            background: linear-gradient(135deg, #0a1020 0%, #0f172a 50%, #0a1628 100%);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .auth-card {
+            background: #1e293b; border: 1px solid #334155; border-radius: 20px;
+            padding: 36px 32px; width: 100%; max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        .auth-logo { width: 52px; height: 52px; background: linear-gradient(135deg, #0284c7, #0f766e); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin: 0 auto 20px; }
+        .auth-card h2 { text-align: center; font-size: 22px; color: #e2e8f0; margin-bottom: 6px; }
+        .auth-card > p { text-align: center; font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+        .auth-input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #e2e8f0; font-size: 14px; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+        .auth-input:focus { border-color: #38bdf8; }
+        .auth-label { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 5px; display: block; }
+        .auth-error { display: none; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #fca5a5; margin-bottom: 12px; }
+        .auth-message { display: none; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #86efac; margin-bottom: 12px; }
+        .auth-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #0284c7, #0f766e); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s, transform 0.15s; margin-top: 4px; }
+        .auth-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .auth-btn-google { width: 100%; padding: 13px; border: 1px solid #334155; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; background: #0f172a; color: #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+        .auth-btn-google:hover { background: #1e293b; }
+        .auth-toggle { text-align: center; margin-top: 18px; font-size: 13px; color: #94a3b8; }
+        .auth-toggle button { background: none; border: none; color: #38bdf8; font-weight: 700; cursor: pointer; margin-left: 4px; font-size: 13px; }
+        .auth-divider { text-align: center; font-size: 11px; color: #64748b; margin: 8px 0; }
+        .sync-badge { font-size: 11px; color: #94d2bd; display: flex; align-items: center; gap: 5px; }
+        header { background: var(--header); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 50; height: 64px; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .header-logo { width: 42px; height: 42px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; }
+        header h1 { font-size: 22px; color: #fff; font-weight: 700; }
+        header p { color: #94d2bd; font-size: 12px; }
+        .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .theme-toggle { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .theme-toggle:hover { background: rgba(255,255,255,0.25); }
+        .signout-btn { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .signout-btn:hover { background: rgba(239,68,68,0.35); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+        .tabs { display: flex; gap: 4px; background: var(--bg2); padding: 6px; border-radius: 14px; margin-bottom: 24px; border: 1px solid var(--border); }
+        .tab { flex: 1; padding: 10px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text2); cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .tab i { font-size: 13px; }
+        .tab.active { background: var(--accent); color: white; }
+        .tab-page { display: none; }
+        .tab-page.active { display: block; }
+        .welcome-banner { background: var(--card); border-radius: 12px; padding: 16px 22px; margin-bottom: 20px; border: 1px solid var(--border); display: none; font-size: 14px; color: var(--text2); border-left: 4px solid var(--accent); align-items: center; gap: 12px; }
+        .welcome-banner.show { display: flex; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--card); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid var(--border); }
+        .stat-card .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 16px; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .stat-card .value i { font-size: 16px; }
+        .stat-card .label { font-size: 11px; color: var(--text2); margin-top: 4px; }
+        .standing-card { background: var(--card); border-radius: 16px; padding: 20px 24px; border: 1px solid var(--border); margin-bottom: 24px; }
+        .standing-card h3 { font-size: 14px; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .progress-track { height: 14px; background: var(--bg3); border-radius: 99px; margin-bottom: 8px; }
+        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e); transition: width 0.8s ease; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); }
+        .risk-banner { display: none; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; font-size: 14px; border-left: 5px solid var(--red); background: rgba(239,68,68,0.1); align-items: center; gap: 10px; }
+        .risk-banner.show { display: flex; }
+        .risk-banner.good { border-left-color: var(--green); background: rgba(34,197,94,0.1); }
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .card { background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .card:last-child { margin-bottom: 0; }
+        .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .card-title .icon-circle { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .card-title h2 { font-size: 16px; color: var(--text); font-weight: 700; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .course-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto auto; gap: 6px; margin-bottom: 6px; align-items: center; }
+        .course-row input, .course-row select { padding: 8px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; width: 100%; }
+        .btn-remove { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.2); color: var(--red); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 13px; }
+        .course-header { display: grid; grid-template-columns: 2fr 1fr 1fr auto auto; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+        .course-header span { font-size: 11px; color: var(--text3); font-weight: 600; }
+        @media(max-width:768px) { .course-row, .course-header { grid-template-columns: 1fr 62px 1fr auto auto; } }
+        .btn { width: 100%; padding: 11px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent2), #0f766e); color: white; }
+        .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+        .btn-warning { background: linear-gradient(135deg, #b45309, #92400e); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #991b1b, #7f1d1d); color: white; }
+        .btn-purple { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; }
+        .target-result { margin-top: 14px; padding: 16px; background: var(--bg3); border-radius: 10px; font-size: 13px; display: none; border-left: 4px solid var(--accent); }
+        .target-result.show { display: block; }
+        .semester-card { background: var(--card2); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 10px; transition: border-color 0.2s; }
+        .semester-card:hover { border-color: var(--accent); }
+        .semester-card-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .sem-name-input { background: transparent; border: none; color: var(--text); font-weight: 600; font-size: 14px; width: 200px; cursor: pointer; }
+        .sem-name-input:focus { outline: none; border-bottom: 1px solid var(--accent); cursor: text; }
+        .sem-info { font-size: 11px; color: var(--text3); margin-top: 2px; }
+        .sem-gpa { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 6px; justify-content: center; }
+        .sem-gpa i { font-size: 12px; }
+        .expand-icon { color: var(--text3); transition: transform 0.3s; font-size: 12px; }
+        .semester-card.expanded .expand-icon { transform: rotate(180deg); }
+        .semester-breakdown { display: none; border-top: 1px solid var(--border); padding: 16px; background: var(--bg); }
+        .semester-card.expanded .semester-breakdown { display: block; }
+        .breakdown-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+        .breakdown-table th { text-align: left; padding: 7px 8px; color: var(--text3); border-bottom: 1px solid var(--border); font-weight: 500; }
+        .breakdown-table td { padding: 7px 8px; border-bottom: 1px solid var(--bg2); }
+        .breakdown-table input, .breakdown-table select { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 4px 8px; width: 100%; font-size: 12px; }
+        .breakdown-table th:nth-child(4), .breakdown-table td:nth-child(4), .breakdown-table th:nth-child(5), .breakdown-table td:nth-child(5) { width: 34px; text-align: center; }
+        .weak-course { background: rgba(239,68,68,0.04); }
+        .weak-label { font-size: 10px; color: var(--red); font-weight: 700; margin-top: 2px; }
+        .grade-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .grade-A { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .grade-B { background: rgba(56,189,248,0.15); color: #38bdf8; }
+        .grade-C { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .grade-D { background: rgba(249,115,22,0.15); color: #f97316; }
+        .grade-E { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .grade-F { background: rgba(127,29,29,0.25); color: #fca5a5; }
+        .breakdown-stats { background: var(--bg2); border-radius: 10px; padding: 12px; margin-bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; font-size: 12px; }
+        .bs-label { color: var(--text3); font-size: 11px; }
+        .bs-val { font-weight: 700; color: var(--text); font-size: 15px; margin-top: 2px; }
+        .breakdown-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .chart-container { position: relative; height: 220px; }
+        .weak-item { display: flex; justify-content: space-between; align-items: center; background: rgba(239,68,68,0.05); border-left: 3px solid var(--red); border-radius: 8px 8px 0 0; padding: 10px 14px; margin-bottom: 0; font-size: 13px; }
+        .weak-item-name { font-weight: 600; color: var(--text); }
+        .weak-item-info { font-size: 11px; color: var(--text3); margin-top: 2px; }
+        .whatif-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(239,68,68,0.05); border-left: 3px solid var(--red); border-radius: 0 0 8px 8px; margin-top: -8px; margin-bottom: 8px; padding: 8px 14px 10px; }
+        .whatif-label { font-size: 11px; color: var(--text2); }
+        .whatif-row select { padding: 5px 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; }
+        .whatif-btn { background: var(--accent2); color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .whatif-btn:hover { opacity: 0.88; }
+        .whatif-result { display: none; font-size: 12px; color: var(--text2); background: var(--bg3); border-radius: 8px; padding: 8px 14px; margin-bottom: 8px; margin-top: -6px; }
+        .whatif-result.show { display: block; }
+        .whatif-all-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg3); border-radius: 8px; padding: 10px 14px; margin: 4px 0 8px; }
+        .whatif-all-row select { padding: 5px 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; }
+        .whatif-btn-purple { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+        .gpa-projection { margin-top: 14px; background: var(--bg3); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--purple); font-size: 13px; color: var(--text2); }
+        .gpa-projection strong.big { font-size: 20px; color: var(--purple); }
+        .gpa-projection .proj-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+        .goal-item { background: var(--bg3); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .goal-label { font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .goal-status { font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .goal-status.achieved { color: var(--green); }
+        .goal-status.pending { color: var(--accent); }
+        .goal-mini-track { height: 8px; background: var(--bg2); border-radius: 99px; overflow: hidden; }
+        .goal-mini-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #38bdf8, #22c55e); transition: width 0.5s ease; }
+        .goal-sub { font-size: 11px; color: var(--text3); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .goal-delete { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px 6px; }
+        .goal-delete:hover { color: var(--red); }
+        .goal-add-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; margin-top: 6px; }
+        @media(max-width:768px) { .goal-add-row { grid-template-columns: 1fr; } }
+        .peer-teaser { display: flex; align-items: center; gap: 12px; background: var(--bg3); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: var(--text2); }
+        .peer-teaser a { color: var(--accent); font-weight: 600; cursor: pointer; }
+        .peer-result { background: var(--bg3); border-radius: 10px; padding: 16px; }
+        .peer-percentile { font-size: 32px; font-weight: 700; color: var(--accent); }
+        .peer-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .profile-avatar { width: 72px; height: 72px; background: linear-gradient(135deg, var(--accent2), #0f766e); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; margin-bottom: 16px; }
+        .grading-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; text-align: center; }
+        .grading-item { background: var(--bg2); border-radius: 10px; padding: 10px 4px; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: var(--card); border-radius: 16px; padding: 28px; width: 90%; max-width: 420px; border: 1px solid var(--border); }
+        .modal-icon { font-size: 32px; color: var(--red); margin-bottom: 12px; }
+        .modal h3 { color: var(--text); margin-bottom: 8px; font-size: 18px; }
+        .modal p { color: var(--text2); margin-bottom: 20px; font-size: 14px; }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gpa-5 { color: #22c55e; } .gpa-4 { color: #38bdf8; } .gpa-3 { color: #f59e0b; } .gpa-2 { color: #f97316; } .gpa-1 { color: #ef4444; }
+        .empty-state { text-align: center; color: var(--text3); padding: 28px; font-size: 14px; }
+        .empty-state i { font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.4; }
+        @media print { header, .tabs, .bottom-nav, .tab-page:not(#page-dashboard), .btn, .modal-overlay, .breakdown-actions, .toast-wrap, .tour-mask { display: none !important; } .tab-page#page-dashboard { display: block !important; } body { background: white !important; color: black !important; } }
+
+        /* ---- Toast notifications ---- */
+        .toast-wrap { position: fixed; top: 18px; right: 18px; z-index: 400; display: flex; flex-direction: column; gap: 10px; max-width: 340px; }
+        .toast { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--text); box-shadow: 0 12px 30px rgba(0,0,0,0.3); display: flex; align-items: flex-start; gap: 10px; animation: toastIn 0.25s ease; }
+        .toast.success { border-left-color: var(--green); }
+        .toast.error { border-left-color: var(--red); }
+        .toast.warning { border-left-color: var(--gold); }
+        .toast i.toast-icon { margin-top: 1px; }
+        .toast.success i.toast-icon { color: var(--green); }
+        .toast.error i.toast-icon { color: var(--red); }
+        .toast.warning i.toast-icon { color: var(--gold); }
+        .toast.info i.toast-icon { color: var(--accent); }
+        .toast-close { margin-left: auto; background: none; border: none; color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px; flex-shrink: 0; }
+        .toast.leaving { animation: toastOut 0.2s ease forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(24px); } }
+        @media(max-width:768px) { .toast-wrap { top: auto; bottom: 78px; right: 12px; left: 12px; max-width: none; } }
+
+        /* ---- Password visibility toggle ---- */
+        .pw-field { position: relative; }
+        .pw-field .auth-input { padding-right: 42px; margin-bottom: 0; }
+        .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text3, #94a3b8); cursor: pointer; font-size: 14px; padding: 4px; }
+        .pw-field-wrap { margin-bottom: 12px; }
+
+        /* ---- University search ---- */
+        .uni-search-wrap { position: relative; }
+        .uni-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; max-height: 240px; overflow-y: auto; z-index: 30; display: none; box-shadow: 0 12px 30px rgba(0,0,0,0.25); }
+        .uni-dropdown.show { display: block; }
+        .uni-option { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--bg3); color: var(--text); }
+        .uni-option:last-child { border-bottom: none; }
+        .uni-option:hover, .uni-option.hi { background: var(--bg3); }
+        .uni-option .uni-state { color: var(--text3); font-size: 11px; }
+        .uni-empty { padding: 12px 14px; font-size: 12px; color: var(--text3); }
+
+        /* ---- Toggle switch (100L exclusion etc.) ---- */
+        .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg3); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+        .switch-row .switch-label { font-size: 13px; font-weight: 600; color: var(--text); }
+        .switch-row .switch-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+        .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .slider { position: absolute; inset: 0; background: var(--border); border-radius: 99px; cursor: pointer; transition: 0.2s; }
+        .switch .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+        .switch input:checked + .slider { background: var(--accent); }
+        .switch input:checked + .slider::before { transform: translateX(18px); }
+
+        /* ---- Resit + level chips ---- */
+        .resit-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(245,158,11,0.12); padding: 2px 7px; border-radius: 6px; margin-top: 3px; }
+        .course-row-tools { display: flex; align-items: center; gap: 4px; }
+        .resit-check { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 9px; color: var(--text3); cursor: pointer; width: 34px; }
+        .resit-check input { width: 14px; height: 14px; accent-color: var(--gold); cursor: pointer; }
+
+        /* ---- Advanced grading scale ---- */
+        .advanced-toggle { background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 0; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .advanced-panel { display: none; margin-top: 10px; }
+        .advanced-panel.show { display: block; }
+        .scale-row { display: grid; grid-template-columns: 40px 1fr 90px; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .scale-row .grade-badge { margin: 0; }
+        .scale-row input { padding: 8px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; width: 100%; }
+
+        /* ---- Paste-to-parse ---- */
+        .paste-panel { display: none; margin-top: 10px; background: var(--bg3); border-radius: 10px; padding: 14px; }
+        .paste-panel.show { display: block; }
+        .paste-panel textarea { width: 100%; min-height: 110px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 13px; font-family: 'Segoe UI', sans-serif; resize: vertical; margin-bottom: 8px; }
+        .quick-actions-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 6px; }
+
+        /* ---- Onboarding tour ---- */
+        .tour-mask { position: fixed; inset: 0; z-index: 500; display: none; }
+        .tour-mask.show { display: block; }
+        .tour-highlight { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(2,6,20,0.78); border: 2px solid var(--accent); z-index: 501; opacity: 0; transition: top 0.35s ease, left 0.35s ease, width 0.35s ease, height 0.35s ease, opacity 0.25s ease; pointer-events: none; top: 50%; left: 50%; width: 0; height: 0; }
+        .tour-tooltip { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 502; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; width: min(360px, calc(100vw - 32px)); box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+        .tour-step-count { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+        .tour-tooltip h4 { font-size: 15px; color: var(--text); margin-bottom: 6px; }
+        .tour-tooltip p { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+        .tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .tour-skip { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; padding: 6px; }
+        .tour-next { background: linear-gradient(135deg, var(--accent2), #0f766e); color: white; border: none; padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        @media(max-width:768px) { .tour-tooltip { bottom: 84px; } }
+        .bottom-nav { display: none; }
+        @media(max-width:768px) {
+            .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; background: var(--card); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.25); }
+            .bottom-nav button { flex: 1; background: none; border: none; color: var(--text3); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; font-size: 10px; font-weight: 600; cursor: pointer; border-radius: 10px; }
+            .bottom-nav button i { font-size: 17px; }
+            .bottom-nav button.active { color: var(--accent); }
+            .tabs { display: none; }
+        }
+        @media(max-width:768px) {
+            .main-grid, .profile-grid, .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+            .stat-card { padding: 14px 10px; }
+            .stat-card .value { font-size: 26px; }
+            .grading-grid { grid-template-columns: repeat(3, 1fr); }
+            header { padding: 0 14px; height: 56px; }
+            header h1 { font-size: 18px; }
+            header p { display: none; }
+            .header-logo { width: 34px; height: 34px; font-size: 16px; }
+            .header-left { gap: 10px; }
+            .header-right { gap: 6px; }
+            .sync-badge .sync-text { display: none; }
+            .sync-badge { font-size: 15px; }
+            #user-email-display { display: none !important; }
+            #scale-badge { display: none; }
+            .signout-btn span { display: none; }
+            .theme-toggle span { display: none; }
+            .signout-btn { padding: 8px 10px; border-radius: 10px; }
+            .theme-toggle { padding: 8px 10px; border-radius: 10px; }
+            .tab span { display: none; }
+            .tab { padding: 10px 6px; }
+            .tabs { gap: 2px; padding: 4px; }
+            .container { padding: 16px 12px 96px; }
+            .card { padding: 16px; }
+            .welcome-banner { padding: 12px 14px; font-size: 13px; }
+            .standing-card { padding: 14px 16px; }
+            .section-title { font-size: 32px; }
+            .card-title h2 { font-size: 14px; }
+            .quick-actions-row { grid-template-columns: 1fr; }
+            .course-row, .course-header { grid-template-columns: 1fr 50px 1fr auto auto; gap: 4px; }
+            .course-row input, .course-row select { font-size: 12px; padding: 8px 6px; }
+            .resit-check, .btn-remove { padding: 6px; width: 30px; }
+            .card { margin-bottom: 14px; }
+            .standing-card, .card, .welcome-banner { border-radius: 14px; }
+            .scale-row { grid-template-columns: 32px 1fr 70px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+<!-- LOADING SCREEN — shows while Supabase checks session -->
+<div id="loading-screen" style="position:fixed;inset:0;z-index:300;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#0284c7,#0f766e);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:white;"><i class="fa-solid fa-shield-halved"></i></div>
+    <div style="font-family:Segoe UI,sans-serif;font-size:20px;font-weight:700;color:#e2e8f0;">GradeGuard</div>
+    <div style="width:32px;height:32px;border-radius:50%;border:3px solid rgba(56,189,248,0.2);border-top-color:#38bdf8;animation:spin 0.8s linear infinite;margin-top:4px;"></div>
+    <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+</div>
+
+<!-- LANDING / PITCH SCREEN — shown once, before auth, on a person's very first visit -->
+<div id="landing-screen" style="display:none;position:fixed;inset:0;z-index:250;background:linear-gradient(135deg,#0a1020 0%,#0f172a 50%,#0a1628 100%);overflow-y:auto;">
+    <div style="max-width:480px;margin:0 auto;padding:60px 24px 40px;text-align:center;">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#0284c7,#0f766e);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;color:white;margin:0 auto 20px;"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1 style="color:#e2e8f0;font-size:26px;margin-bottom:10px;">GradeGuard</h1>
+        <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:28px;">Built for Nigerian university grading — the 5.0 scale, resits, 100L exclusion rules, and real unit-weighted CGPA math done right. Track every semester, see exactly what you need to hit First Class, and know where you stand.</p>
+        <div style="text-align:left;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:28px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-calculator" style="color:#38bdf8;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Accurate unit-weighted CGPA, built for the Nigerian 5.0 scale</span></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-bullseye" style="color:#a78bfa;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">See exactly what GPA you need to hit First Class or Second Class Upper</span></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;"><i class="fa-solid fa-users" style="color:#22c55e;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Anonymous peer comparison — see how you stack up at your school</span></div>
+        </div>
+        <button class="auth-btn" type="button" onclick="dismissLanding()" style="max-width:320px;margin:0 auto;"><i class="fa-solid fa-arrow-right"></i><span>Get Started</span></button>
+    </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="display:none;">
+    <div class="auth-card">
+        <div class="auth-logo"><i class="fa-solid fa-shield-halved"></i></div>
+        <h2 id="auth-title">Welcome Back</h2>
+        <p id="auth-sub">Sign in to access your grades</p>
+        <div id="auth-error" class="auth-error"></div>
+        <div id="auth-message" class="auth-message"></div>
+        <div>
+            <label class="auth-label"><i class="fa-solid fa-envelope" style="margin-right:5px;"></i>Email</label>
+            <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="username">
+        </div>
+        <div class="pw-field-wrap">
+            <label class="auth-label"><i class="fa-solid fa-lock" style="margin-right:5px;"></i>Password</label>
+            <div class="pw-field">
+                <input class="auth-input" id="auth-password" type="password" placeholder="Min. 6 characters" autocomplete="current-password" oninput="updatePasswordStrength()">
+                <button type="button" class="pw-toggle" onclick="togglePwVisibility('auth-password', this)" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
+            <div id="pwStrengthBar" style="display:none;margin-top:7px;">
+                <div style="height:4px;background:#0f172a;border-radius:99px;overflow:hidden;">
+                    <div id="pwStrengthFill" style="height:100%;width:0%;background:#ef4444;transition:width 0.2s ease, background 0.2s ease;"></div>
+                </div>
+                <div id="pwStrengthLabel" style="font-size:11px;color:#94a3b8;margin-top:4px;"></div>
+            </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">
+            <input type="checkbox" id="sharedDeviceCheck" style="margin-top:3px;accent-color:#38bdf8;cursor:pointer;">
+            <label for="sharedDeviceCheck" style="font-size:12px;color:#94a3b8;cursor:pointer;">This is a shared or public computer (e.g. cybercafé) — don't remember my data on this device after I sign out.</label>
+        </div>
+        <button class="auth-btn" id="auth-btn" type="button" onclick="handleAuth()">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span id="auth-btn-text">Sign In</span>
+        </button>
+        <button class="auth-btn-google" id="google-auth-btn" type="button" onclick="signInWithGoogle()">
+            <i class="fa-brands fa-google"></i>
+            <span>Continue with Google</span>
+        </button>
+        <div style="text-align:right;margin-top:10px;margin-bottom:12px;"><button type="button" onclick="handleForgotPassword()" style="background:none;border:none;color:#38bdf8;font-size:12px;cursor:pointer;padding:0;">Forgot password?</button></div>
+        <div class="auth-toggle">
+            <span id="auth-toggle-text">Don't have an account?</span>
+            <button type="button" onclick="toggleAuthMode()" id="auth-toggle-btn">Sign Up</button>
+        </div>
+        <div class="auth-divider" style="margin-top:20px;">Your data is private &amp; encrypted ✓</div>
+    </div>
+</div>
+
+<!-- PASSWORD RESET SCREEN -->
+<div id="reset-screen" style="position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#0a1020 0%,#0f172a 50%,#0a1628 100%);display:none;align-items:center;justify-content:center;padding:20px;">
+    <div class="auth-card">
+        <div class="auth-logo"><i class="fa-solid fa-key"></i></div>
+        <h2>Set New Password</h2>
+        <p>Enter and confirm your new password below.</p>
+        <div id="reset-error" class="auth-error"></div>
+        <div id="reset-message" class="auth-message"></div>
+        <div class="pw-field-wrap">
+            <label class="auth-label"><i class="fa-solid fa-lock" style="margin-right:5px;"></i>New Password</label>
+            <div class="pw-field">
+                <input class="auth-input" id="reset-password" type="password" placeholder="Min. 6 characters">
+                <button type="button" class="pw-toggle" onclick="togglePwVisibility('reset-password', this)" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
+        </div>
+        <div class="pw-field-wrap">
+            <label class="auth-label"><i class="fa-solid fa-lock" style="margin-right:5px;"></i>Confirm Password</label>
+            <div class="pw-field">
+                <input class="auth-input" id="reset-confirm" type="password" placeholder="Repeat new password">
+                <button type="button" class="pw-toggle" onclick="togglePwVisibility('reset-confirm', this)" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
+        </div>
+        <button class="auth-btn" type="button" onclick="handlePasswordReset()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save New Password</span>
+        </button>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen" style="display:none;">
+<header>
+    <div class="header-left">
+        <div class="header-logo"><i class="fa-solid fa-shield-halved"></i></div>
+        <div><h1>GradeGuard</h1><p>Smart Academic Performance Tracker!!</p></div>
+    </div>
+    <div class="header-right">
+        <div class="sync-badge" id="sync-badge"></div>
+        <div style="font-size:11px;color:#94d2bd;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="user-email-display"></div>
+        <div id="scale-badge" style="font-size:11px;color:#94d2bd;">Nigerian 5.0 Scale</div>
+        <button class="theme-toggle" onclick="askReplayTour()" aria-label="Show app walkthrough" style="padding:8px 12px;"><i class="fa-solid fa-circle-question"></i><span style="margin-left:6px;">Help</span></button>
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Switch to light mode"><i class="fa-solid fa-lightbulb"></i><span>Light Mode</span></button>
+        <button class="signout-btn" onclick="handleSignOut()" aria-label="Sign out"><i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span></button>
+    </div>
+</header>
+<div class="container">
+    <div class="tabs">
+        <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></button>
+        <button class="tab" data-tab="add" onclick="switchTab('add')"><i class="fa-solid fa-plus"></i><span>Add Semester</span></button>
+        <button class="tab" data-tab="calculator" onclick="switchTab('calculator')"><i class="fa-solid fa-calculator"></i><span>Calculator</span></button>
+        <button class="tab" data-tab="profile" onclick="switchTab('profile')"><i class="fa-solid fa-user"></i><span>My Profile</span></button>
+    </div>
+    <div class="tab-page active" id="page-dashboard">
+        <div class="welcome-banner" id="welcomeBanner"><i class="fa-solid fa-user-graduate" style="font-size:20px;color:var(--accent);flex-shrink:0;"></i><span id="welcomeText"></span></div>
+        <div class="welcome-banner" id="reengagementNudge" style="border-left-color:var(--gold);"></div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-star"></i></div><div class="value" id="cgpaDisplay">—</div><div class="label">Current CGPA</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-calendar-check"></i></div><div class="value" id="semesterCount" style="color:#a78bfa;">0</div><div class="label">Semesters</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;"><i class="fa-solid fa-trophy"></i></div><div class="value" id="bestGPA" style="color:#22c55e;">—</div><div class="label">Best GPA</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="fa-solid fa-book"></i></div><div class="value" id="totalCoursesCount" style="color:#f59e0b;">0</div><div class="label">Total Courses</div></div>
+        </div>
+        <div class="standing-card">
+            <h3><i class="fa-solid fa-ranking-star"></i> Class Standing Progress</h3>
+            <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div class="progress-labels"><span>0.0</span><span>1.0 Pass</span><span>1.5 3rd</span><span>2.5 2nd Low</span><span>3.5 2nd Up</span><span>4.5 1st</span></div>
+            <div id="standingBadge" style="margin-top:12px;font-size:14px;color:var(--text2);"></div>
+        </div>
+        <div class="card" id="goalsCard">
+            <div class="card-title"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-bullseye"></i></div><h2>Your Targets</h2></div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">How close you are to the numbers that actually matter — classification, scholarships, internship cutoffs, NYSC preferences, whatever you're aiming for.</p>
+            <div id="builtInTargets"></div>
+            <div id="customGoalsList"></div>
+            <div class="goal-add-row">
+                <input type="text" id="newGoalLabel" placeholder="e.g. Scholarship Cutoff, NYSC Posting, Internship Requirement">
+                <input type="number" id="newGoalCGPA" placeholder="Target CGPA" step="0.01" min="0" max="5">
+                <button class="btn btn-secondary" type="button" onclick="addGoal()" style="margin:0;"><i class="fa-solid fa-plus"></i> Add Target</button>
+            </div>
+        </div>
+        <div class="card" id="peerCard" style="display:none;">
+            <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-users"></i></div><h2>Peer Comparison</h2></div>
+            <div id="peerContent"></div>
+        </div>
+        <div class="risk-banner" id="riskBanner"></div>
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-chart-area"></i></div><h2>GPA Trend</h2></div>
+                <div class="chart-container"><canvas id="gpaChart"></canvas></div>
+                <div id="noChartMsg" style="text-align:center;color:var(--text3);font-size:13px;padding:20px;"><i class="fa-solid fa-chart-line" style="font-size:28px;margin-bottom:8px;display:block;opacity:0.3;"></i>Add at least 2 semesters to see your trend</div>
+                <div id="gpaProjection"></div>
+            </div>
+            <div class="card">
+                <div class="card-title"><div class="icon-circle" style="background:rgba(239,68,68,0.12);color:var(--red);"><i class="fa-solid fa-triangle-exclamation"></i></div><h2>Weak Course Detector</h2></div>
+                <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Courses graded E or F dragging your GPA down:</p>
+                <div id="weakCoursesList"><div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green);opacity:1;"></i>No weak courses!<br>All courses are passing.</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <div class="card-title" style="margin-bottom:0;"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-clock-rotate-left"></i></div><h2>Semester History <span style="font-size:11px;color:var(--text3);font-weight:400;">— tap to expand &amp; edit</span></h2></div>
+                <div style="display:flex;gap:8px;" id="exportActionsRow">
+                    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;margin:0;font-size:13px;" onclick="window.print()" aria-label="Print dashboard"><i class="fa-solid fa-print"></i> Print</button>
+                    <button class="btn btn-purple" style="width:auto;padding:8px 16px;margin:0;font-size:13px;" onclick="exportTranscriptPDF()" aria-label="Download transcript as PDF"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+            <div id="historyList"><div class="empty-state"><i class="fa-solid fa-folder-open"></i>No semesters yet. Go to Add Semester!</div></div>
+        </div>
+    </div>
+    <div class="tab-page" id="page-add">
+        <div class="card">
+            <div class="card-title"><div class="icon-circle" style="background:rgba(34,197,94,0.12);color:var(--green);"><i class="fa-solid fa-plus"></i></div><h2>Add New Semester</h2></div>
+            <div class="form-row">
+                <div class="form-group"><label><i class="fa-solid fa-tag" style="margin-right:5px;"></i>Semester Name</label><input type="text" id="semesterName" placeholder="e.g. 200L First Semester"></div>
+                <div class="form-group"><label><i class="fa-solid fa-layer-group" style="margin-right:5px;"></i>Level</label><select id="semesterLevel"><option value="">Select level</option><option>100L</option><option>200L</option><option>300L</option><option>400L</option><option>500L</option><option>600L</option></select></div>
+            </div>
+            <div class="quick-actions-row">
+                <button class="btn btn-secondary" type="button" onclick="duplicateLastSemester()" style="margin-top:0;"><i class="fa-solid fa-clone"></i> Copy Last Semester's Courses</button>
+                <button class="btn btn-secondary" type="button" onclick="togglePastePanel()" style="margin-top:0;"><i class="fa-solid fa-paste"></i> Paste Grades Instead</button>
+                <button class="btn btn-secondary" type="button" onclick="document.getElementById('ocrFileInput').click()" style="margin-top:0;"><i class="fa-solid fa-image"></i> Scan Result Screenshot</button>
+                <!-- No "capture" attribute here on purpose — with it, some mobile browsers jump
+                     straight to the camera app and skip the gallery option entirely. Without it,
+                     the native picker shows both "Take Photo" and "Choose from Library/Gallery",
+                     which matters since most students will have the result screenshot already
+                     saved rather than wanting to re-photograph their screen. -->
+                <input type="file" id="ocrFileInput" accept="image/*" style="display:none;" onchange="handleOcrFileSelected(event)">
+            </div>
+            <p style="font-size:11px;color:var(--text3);margin:-2px 0 4px;">Tip: a digital screenshot from your result portal scans far more accurately than a photo of a printed sheet. If photographing paper, lay it flat, crop tightly to just the table, and avoid glare or shadows.</p>
+            <div class="paste-panel" id="pastePanel">
+                <label style="font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:8px;">Paste one course per line — e.g. <code>MTH101 3 A</code> or <code>MTH101, 3 units, A</code></label>
+                <textarea id="pasteText" placeholder="MTH101 3 A&#10;CSC102 4 B&#10;GST101 2 C"></textarea>
+                <button class="btn btn-primary" type="button" onclick="parsePastedCourses()" style="margin-top:0;"><i class="fa-solid fa-wand-magic-sparkles"></i> Fill Courses From Paste</button>
+            </div>
+            <div class="paste-panel" id="ocrStatusPanel" style="text-align:center;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:18px;color:var(--accent);margin-bottom:8px;display:block;"></i>
+                <div id="ocrStatusText" style="font-size:13px;color:var(--text2);">Reading your screenshot...</div>
+                <div style="height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:10px;">
+                    <div id="ocrProgressFill" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s ease;"></div>
+                </div>
+                <button type="button" class="btn btn-secondary" style="margin-top:14px;width:auto;padding:7px 16px;font-size:12px;" onclick="cancelOcrScan()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+            <div class="course-header" style="margin-top:16px;"><span>Course Name</span><span>Units</span><span>Grade</span><span title="Resit">Resit</span><span></span></div>
+            <div id="coursesList"></div>
+            <button class="btn btn-secondary" onclick="addCourseRow()" style="margin-top:6px;"><i class="fa-solid fa-plus"></i> Add Course</button>
+            <button class="btn btn-primary" id="saveSemesterBtn" onclick="saveSemester()"><i class="fa-solid fa-floppy-disk"></i> Save Semester</button>
+        </div>
+    </div>
+    <div class="tab-page" id="page-calculator">
+        <div class="card">
+            <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-calculator"></i></div><h2>Target GPA Calculator</h2></div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">Fill in your details to find out what GPA you need to graduate with your dream class.</p>
+            <div class="form-row">
+                <div class="form-group"><label>Your Current CGPA</label><input type="number" id="currentCGPA" placeholder="e.g. 3.85" step="0.01" min="0" max="5"></div>
+                <div class="form-group"><label>Current Semester Number</label><input type="number" id="currentSem" placeholder="e.g. 3" min="1"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Target CGPA at Graduation</label><input type="number" id="targetGPA" placeholder="e.g. 4.50" step="0.01" min="0" max="5"></div>
+                <div class="form-group"><label>Total Semesters in Program</label><input type="number" id="totalSem" placeholder="e.g. 8 for 4-year course" min="1"></div>
+            </div>
+            <button class="btn btn-primary" onclick="calculateTarget()"><i class="fa-solid fa-magnifying-glass-chart"></i> Calculate What I Need</button>
+            <div class="target-result" id="targetResult"></div>
+            <div style="margin-top:24px;background:var(--bg3);border-radius:12px;padding:16px;">
+                <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:14px;" id="gradingRefTitle"><i class="fa-solid fa-table" style="color:var(--accent);margin-right:6px;"></i>Nigerian Grading Scale Reference</div>
+                <div class="grading-grid" id="gradingRefGrid"></div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-page" id="page-profile">
+        <div class="card">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+                <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                <div><div style="font-size:20px;font-weight:700;" id="profileNameDisplay">Your Name</div><div style="font-size:13px;color:var(--text2);" id="profileSubDisplay">Set up your profile below</div></div>
+            </div>
+            <div class="profile-grid">
+                <div class="form-group"><label>Full Name</label><input type="text" id="profileName" placeholder="e.g. Joshua Alex"></div>
+                <div class="form-group"><label>Matric Number</label><input type="text" id="profileMatric" placeholder="e.g. LCU/CS/2023/001"></div>
+                <div class="form-group"><label>Department</label><input type="text" id="profileDept" placeholder="e.g. Cybersecurity"></div>
+                <div class="form-group"><label>Faculty</label><input type="text" id="profileFaculty" placeholder="e.g. Computing &amp; Applied Sciences"></div>
+                <div class="form-group"><label>Current Level</label><select id="profileLevel"><option value="">Select Level</option><option value="100L">100 Level</option><option value="200L">200 Level</option><option value="300L">300 Level</option><option value="400L">400 Level</option><option value="500L">500 Level</option><option value="600L">600 Level</option></select></div>
+                <div class="form-group"><label>Academic Session</label><input type="text" id="profileSession" placeholder="e.g. 2023/2024"></div>
+                <div class="form-group"><label>Total Semesters in Your Program</label><input type="number" id="profileTotalSemesters" placeholder="e.g. 8 for a 4-year program" min="1" max="14"></div>
+            </div>
+            <div class="form-group uni-search-wrap">
+                <label>University</label>
+                <input type="text" id="profileUni" placeholder="Start typing e.g. 'Lead' or 'Lagos'..." autocomplete="off" oninput="onUniInput()" onfocus="onUniInput()" onblur="setTimeout(function(){document.getElementById('uniDropdown').classList.remove('show')},150)">
+                <div class="uni-dropdown" id="uniDropdown"></div>
+            </div>
+
+            <div class="switch-row">
+                <div>
+                    <div class="switch-label">Exclude 100L from CGPA</div>
+                    <div class="switch-sub">Turn on if your university doesn't count first-year results toward final CGPA. This affects CGPA, Best GPA, Total Courses, GPA Trend and the Weak Course Detector everywhere on your dashboard — 100L still stays visible in Semester History as your full record.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="exclude100L"><span class="slider"></span></label>
+            </div>
+
+            <div class="switch-row">
+                <div>
+                    <div class="switch-label">Compare my CGPA anonymously with peers</div>
+                    <div class="switch-sub">See how you stack up against other GradeGuard students at your university and level — opt-in only. Nobody, including us, can see your individual CGPA through this feature; you only ever see a group percentile, and only once at least 5 students at your university &amp; level have also opted in. Turn this off anytime to stop sharing.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="peerOptIn"><span class="slider"></span></label>
+            </div>
+
+            <button type="button" class="advanced-toggle" onclick="toggleAdvancedScale()"><i class="fa-solid fa-sliders" id="advScaleIcon"></i> <span id="advScaleLabel">Customize grading scale for my university</span></button>
+            <div class="advanced-panel" id="advancedScalePanel">
+                <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Most Nigerian universities use the standard 5.0 scale below. Only change this if your school's senate uses different grade points.</p>
+                <div id="scaleRows"></div>
+                <button type="button" class="btn btn-secondary" onclick="resetScaleDefaults()" style="margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> Reset to Standard 5.0 Scale</button>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveProfile()" style="margin-top:16px;"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+            <div id="profileMsg" style="margin-top:10px;font-size:13px;color:var(--green);display:none;align-items:center;gap:6px;"><i class="fa-solid fa-circle-check"></i> Profile saved to cloud!</div>
+
+            <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px;">
+                <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;"><i class="fa-solid fa-shield-halved" style="color:var(--accent);margin-right:6px;"></i>Your Data</div>
+                <button class="btn btn-secondary" type="button" onclick="exportUserDataJSON()"><i class="fa-solid fa-download"></i> Download My Data (JSON)</button>
+                <p style="font-size:11px;color:var(--text3);margin-top:8px;">A full backup of your profile and semesters, in case you ever want to move your data elsewhere.</p>
+            </div>
+
+            <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
+                <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>Danger Zone</div>
+                <button class="btn btn-danger" type="button" onclick="openDeleteAccountModal()"><i class="fa-solid fa-user-slash"></i> Delete My Account &amp; Data</button>
+                <p style="font-size:11px;color:var(--text3);margin-top:8px;">Permanently deletes all your semesters and profile data from GradeGuard's servers.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<nav class="bottom-nav" aria-label="Main navigation">
+    <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')" aria-label="Dashboard"><i class="fa-solid fa-chart-line"></i>Home</button>
+    <button data-tab="add" onclick="switchTab('add')" aria-label="Add semester"><i class="fa-solid fa-plus"></i>Add</button>
+    <button data-tab="calculator" onclick="switchTab('calculator')" aria-label="Target calculator"><i class="fa-solid fa-calculator"></i>Target</button>
+    <button data-tab="profile" onclick="switchTab('profile')" aria-label="My profile"><i class="fa-solid fa-user"></i>Profile</button>
+</nav>
+</div>
+
+<div class="modal-overlay" id="tourConfirmModal">
+    <div class="modal">
+        <div class="modal-icon" style="color:var(--accent);"><i class="fa-solid fa-circle-question"></i></div>
+        <h3>Replay the walkthrough?</h3>
+        <p>This will show the step-by-step tour of GradeGuard's features again.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="cancelReplayTour()"><i class="fa-solid fa-xmark"></i> Not now</button>
+            <button class="btn btn-primary" onclick="confirmReplayTour()"><i class="fa-solid fa-play"></i> Yes, show me</button>
+        </div>
+    </div>
+</div>
+
+<div class="tour-mask" id="tourMask">
+    <div class="tour-highlight" id="tourHighlight"></div>
+    <div class="tour-tooltip" id="tourTooltip">
+        <div class="tour-step-count" id="tourStepCount">Step 1 of 7</div>
+        <h4 id="tourTitle">Title</h4>
+        <p id="tourText">Text</p>
+        <div class="tour-actions">
+            <button class="tour-skip" onclick="endTour()">Skip tour</button>
+            <button class="tour-next" id="tourNextBtn" onclick="nextTourStep()">Next</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h3>Delete Semester?</h3>
+        <p>This will permanently delete this semester from the cloud. Cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()"><i class="fa-solid fa-trash"></i> Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteAccountModal">
+    <div class="modal">
+        <div class="modal-icon"><i class="fa-solid fa-user-slash"></i></div>
+        <h3>Delete your account &amp; data?</h3>
+        <p>This permanently deletes every semester, your profile, and your GradeGuard login itself. This cannot be undone. Consider downloading your data first from the Profile tab.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeDeleteAccountModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()"><i class="fa-solid fa-trash"></i> Yes, Delete Everything</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+    'https://ybdahqqydggbwohmkxqe.supabase.co',
+    'sb_publishable_XuZfQcYW9oRKZ6O5_6q7Vg_CNJM3rjV'
+);
+
+// ---- Silent crash/error reporting ----
+// Catches real JS crashes (window 'error') and unhandled promise rejections, and quietly
+// logs them to a private Supabase table (error_logs) so problems can be noticed and fixed
+// without waiting for a confused student to describe what went wrong. This never blocks or
+// interrupts the person using the app — logging failures are swallowed silently.
+var loggedErrorCount = 0;
+var MAX_ERROR_LOGS_PER_SESSION = 20; // safety cap so a looping bug can't flood the table
+function logErrorToServer(message, stack) {
+    try {
+        if (!navigator.onLine) return; // offline errors are expected noise, not real bugs
+        if (loggedErrorCount >= MAX_ERROR_LOGS_PER_SESSION) return;
+        loggedErrorCount++;
+        sb.from('error_logs').insert({
+            user_id: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
+            message: String(message || '').slice(0, 500),
+            stack: String(stack || '').slice(0, 2000),
+            page_url: window.location.href,
+            user_agent: navigator.userAgent
+        }).then(function(){}, function(){});
+    } catch(e) { /* logging itself must never crash the app */ }
+}
+window.addEventListener('error', function(e) {
+    logErrorToServer(e.message, e.error && e.error.stack);
+});
+window.addEventListener('unhandledrejection', function(e) {
+    var reason = e.reason;
+    logErrorToServer(reason && reason.message ? reason.message : String(reason), reason && reason.stack);
+});
+
+var DEFAULT_GRADE_POINTS = { 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+var GRADE_CLASS  = { 'A': 'grade-A', 'B': 'grade-B', 'C': 'grade-C', 'D': 'grade-D', 'E': 'grade-E', 'F': 'grade-F' };
+var GRADE_PERCENT_BAND = { 'A': '70–100%', 'B': '60–69%', 'C': '50–59%', 'D': '45–49%', 'E': '40–44%', 'F': 'Below 40%' };
+var ALL_GRADES   = ['A', 'B', 'C', 'D', 'E', 'F'];
+var currentUser  = null;
+var semesters    = [];
+var profile      = {};
+var goals        = []; // custom CGPA targets (scholarships, internship cutoffs, etc.)
+var deleteId     = null;
+var chartInstance = null;
+var isSignUp     = false;
+var uniHighlightIdx = -1;
+var uniFilteredList = [];
+
+// ---- Offline support state ----
+var isOnline = navigator.onLine;
+var pendingCreates = [];   // semesters created while offline, keyed by tempId, not yet in Supabase
+var pendingUpdates = {};   // { realId: {name, courses, gpa, level} } edits to already-synced semesters made offline
+var pendingDeletes = [];   // realIds to delete from Supabase once back online
+var pendingProfile = null; // latest profile row to upsert once back online
+var syncInProgress = false;
+var savingSemesterLock = false; // guards against double-tap duplicate semester creation
+var updatingLock = {};          // per-semester guard against double-tap duplicate updates
+
+// ---- Shared/public computer mode ----
+// When checked at sign-in, cached grades/profile data go into sessionStorage (wiped when the
+// browser tab/window closes) instead of localStorage (which otherwise persists indefinitely on
+// the machine — a real risk for students using cybercafés or shared devices). The flag itself
+// is stored in sessionStorage so it survives an OAuth redirect within the same browser tab.
+var useSessionStorageOnly = false;
+try { useSessionStorageOnly = sessionStorage.getItem('gg_shared_device') === '1'; } catch(e) {}
+function storageBackend() {
+    try { return useSessionStorageOnly ? sessionStorage : localStorage; } catch(e) { return localStorage; }
+}
+// Wipes any cached data for this user from BOTH localStorage and sessionStorage — used on sign-out
+// so nothing lingers on a shared machine regardless of which mode was active this session.
+function clearAllLocalDataFor(key) {
+    try { localStorage.removeItem('gg_cache_' + key); localStorage.removeItem('gg_pending_' + key); } catch(e) {}
+    try { sessionStorage.removeItem('gg_cache_' + key); sessionStorage.removeItem('gg_pending_' + key); } catch(e) {}
+}
+
+// Escapes any user-typed text (course names, semester names, profile fields, etc.) before it's
+// inserted into the page via innerHTML, so a course name like <img onerror=...> can't execute as
+// code. Every place that renders user-entered text into HTML routes through this first.
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, function(ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
+
+// ---- Lazy-loading for heavy third-party libraries ----
+// Chart.js and jsPDF (+autotable) together add real weight to first load, but most page views
+// never touch the chart (needs 2+ semesters) or the PDF export button. Instead of loading them
+// upfront for everyone, we fetch them on demand the first time they're actually needed, and
+// cache the in-flight Promise so a second call while still loading doesn't refetch.
+var _scriptLoadCache = {};
+function loadScript(url) {
+    if (_scriptLoadCache[url]) return _scriptLoadCache[url];
+    _scriptLoadCache[url] = new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.onload = resolve;
+        s.onerror = function() { delete _scriptLoadCache[url]; reject(new Error('Failed to load ' + url)); };
+        document.head.appendChild(s);
+    });
+    return _scriptLoadCache[url];
+}
+async function ensureChartJs() {
+    if (window.Chart) return;
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js');
+}
+async function ensurePdfLibs() {
+    if (window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.autoTable) return;
+    if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+}
+async function ensureTesseract() {
+    if (window.Tesseract) return;
+    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+}
+
+// GRADE_POINTS is derived from profile.customScale (if set) else the NUC standard scale
+function GRADE_POINTS() {
+    if (profile && profile.customScale) {
+        try { return JSON.parse(profile.customScale); } catch(e) { return DEFAULT_GRADE_POINTS; }
+    }
+    return DEFAULT_GRADE_POINTS;
+}
+
+// Semesters that currently count toward the dashboard's stats (CGPA, Best GPA, Total
+// Courses, GPA Trend, Weak Course Detector) — respects the "Exclude 100L" toggle.
+// Semester History always shows every semester regardless, since it's the full record.
+function getIncludedSemesters() {
+    if (profile && profile.exclude100L) return semesters.filter(function(s) { return s.level !== '100L'; });
+    return semesters;
+}
+
+function getStandingIcon(gpa) {
+    if (gpa >= 4.5) return 'fa-trophy';
+    if (gpa >= 3.5) return 'fa-circle-check';
+    if (gpa >= 2.5) return 'fa-circle-half-stroke';
+    if (gpa >= 1.5) return 'fa-triangle-exclamation';
+    if (gpa >= 1.0) return 'fa-circle-minus';
+    return 'fa-circle-xmark';
+}
+
+// Nigerian universities — Federal, State, Private (NUC-recognized). Not exhaustive but covers the vast majority.
+var NIGERIAN_UNIVERSITIES = [
+["Abubakar Tafawa Balewa University, Bauchi","Bauchi"],["Adeyemi Federal University of Education, Ondo","Ondo"],["Admiralty University Ibusa","Delta"],["Ahmadu Bello University, Zaria","Kaduna"],["Air Force Institute of Technology, Kaduna","Kaduna"],["Alex Ekwueme Federal University Ndufu Alike Ikwo","Ebonyi"],["Alvan Ikoku Federal University of Education, Owerri","Imo"],["Bayero University, Kano","Kano"],["Federal University Birnin Kebbi","Kebbi"],["Federal University Dutse","Jigawa"],["Federal University Dutsin-Ma","Katsina"],["Federal University Gashua","Yobe"],["Federal University Gusau","Zamfara"],["Federal University Kashere","Gombe"],["Federal University Lokoja","Kogi"],["Federal University Lafia","Nasarawa"],["Federal University of Agriculture, Abeokuta","Ogun"],["Federal University of Agriculture, Mubi","Adamawa"],["Federal University of Agriculture, Zuru","Kebbi"],["Federal University of Petroleum Resources, Effurun","Delta"],["Federal University of Technology, Akure","Ondo"],["Federal University of Technology, Minna","Niger"],["Federal University of Technology, Owerri","Imo"],["Federal University Otuoke","Bayelsa"],["Federal University Oye-Ekiti","Ekiti"],["Federal University Wukari","Taraba"],["Joseph Sarwuan Tarka University, Makurdi","Benue"],["Michael Okpara University of Agriculture, Umudike","Abia"],["Modibbo Adama University, Yola","Adamawa"],["National Open University of Nigeria","Lagos"],["Nigerian Defence Academy, Kaduna","Kaduna"],["Nnamdi Azikiwe University, Awka","Anambra"],["Obafemi Awolowo University, Ile-Ife","Osun"],["University of Abuja","Federal Capital Territory"],["University of Benin","Edo"],["University of Calabar","Cross River"],["University of Ibadan","Oyo"],["University of Ilorin","Kwara"],["University of Jos","Plateau"],["University of Lagos","Lagos"],["University of Maiduguri","Borno"],["University of Nigeria, Nsukka","Enugu"],["University of Port Harcourt","Rivers"],["University of Uyo","Akwa Ibom"],["Usmanu Danfodiyo University, Sokoto","Sokoto"],
+["Abia State University, Uturu","Abia"],["Abiola Ajimobi Technical University, Ibadan","Oyo"],["Adamawa State University, Mubi","Adamawa"],["Adekunle Ajasin University, Akungba-Akoko","Ondo"],["Akwa Ibom State University","Akwa Ibom"],["Ambrose Alli University, Ekpoma","Edo"],["Bauchi State University, Gadau","Bauchi"],["Benue State University, Makurdi","Benue"],["Borno State University, Maiduguri","Borno"],["Chukwuemeka Odumegwu Ojukwu University, Uli","Anambra"],["Delta State University, Abraka","Delta"],["Ebonyi State University, Abakaliki","Ebonyi"],["Edo State University, Uzairue","Edo"],["Ekiti State University, Ado-Ekiti","Ekiti"],["Enugu State University of Science and Technology","Enugu"],["Gombe State University","Gombe"],["Ibrahim Badamasi Babangida University, Lapai","Niger"],["Ignatius Ajuru University of Education, Port Harcourt","Rivers"],["Imo State University, Owerri","Imo"],["Kaduna State University","Kaduna"],["Kebbi State University of Science and Technology, Aliero","Kebbi"],["Kwara State University, Malete","Kwara"],["Prince Abubakar Audu University, Anyigba","Kogi"],["Ladoke Akintola University of Technology, Ogbomoso","Oyo"],["Lagos State University, Ojo","Lagos"],["Lagos State University of Science and Technology, Ikorodu","Lagos"],["Nasarawa State University, Keffi","Nasarawa"],["Niger Delta University, Amassoma","Bayelsa"],["Olabisi Onabanjo University, Ago-Iwoye","Ogun"],["Osun State University, Osogbo","Osun"],["Plateau State University, Bokkos","Plateau"],["Rivers State University, Port Harcourt","Rivers"],["Sokoto State University","Sokoto"],["Taraba State University, Jalingo","Taraba"],["Umaru Musa Yar'adua University, Katsina","Katsina"],["University of Delta, Agbor","Delta"],["Yobe State University, Damaturu","Yobe"],["Zamfara State University","Zamfara"],
+["Achievers University, Owo","Ondo"],["Adeleke University, Ede","Osun"],["Afe Babalola University, Ado-Ekiti (ABUAD)","Ekiti"],["African University of Science and Technology, Abuja","Federal Capital Territory"],["Ajayi Crowther University, Oyo","Oyo"],["Al-Hikmah University, Ilorin","Kwara"],["American University of Nigeria, Yola","Adamawa"],["Anchor University, Lagos","Lagos"],["Babcock University, Ilishan-Remo","Ogun"],["Baze University, Abuja","Federal Capital Territory"],["Bells University of Technology, Ota","Ogun"],["Benson Idahosa University, Benin City","Edo"],["Bowen University, Iwo","Osun"],["Bingham University, Karu","Nasarawa"],["Caleb University, Ikorodu","Lagos"],["Caritas University, Enugu","Enugu"],["Chrisland University, Abeokuta","Ogun"],["Coal City University, Enugu","Enugu"],["Covenant University, Ota","Ogun"],["Crawford University, Igbesa","Ogun"],["Crescent University, Abeokuta","Ogun"],["Dominican University, Ibadan","Oyo"],["Edwin Clark University, Kiagbodo","Delta"],["Elizade University, Ilara-Mokin","Ondo"],["Fountain University, Osogbo","Osun"],["Godfrey Okoye University, Enugu","Enugu"],["Gregory University, Uturu","Abia"],["Igbinedion University, Okada","Edo"],["Joseph Ayo Babalola University, Ikeji-Arakeji","Osun"],["Kings University, Odeomu","Osun"],["Landmark University, Omu-Aran","Kwara"],["Lead City University, Ibadan","Oyo"],["Madonna University, Elele","Rivers"],["McPherson University, Seriki-Sotayo","Ogun"],["Mountain Top University, Makogi","Ogun"],["Nile University of Nigeria, Abuja","Federal Capital Territory"],["Novena University, Ogume","Delta"],["Oduduwa University, Ipetumodu","Osun"],["Pan-Atlantic University, Lekki","Lagos"],["Paul University, Awka","Anambra"],["Precious Cornerstone University, Ibadan","Oyo"],["Redeemer's University, Ede","Osun"],["Rhema University, Aba","Abia"],["Ritman University, Ikot Ekpene","Akwa Ibom"],["Salem University, Lokoja","Kogi"],["Samuel Adegboyega University, Ogwa","Edo"],["Summit University, Offa","Kwara"],["Veritas University, Abuja","Federal Capital Territory"],["Wesley University, Ondo","Ondo"],["Western Delta University, Oghara","Delta"]
+];
+
+function hideLoadingScreen() { document.getElementById('loading-screen').style.display = 'none'; }
+
+
+function showResetScreen() {
+    hideLoadingScreen();
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display  = 'none';
+    document.getElementById('reset-screen').style.display = 'flex';
+}
+
+async function handlePasswordReset() {
+    var pw  = document.getElementById('reset-password').value;
+    var pw2 = document.getElementById('reset-confirm').value;
+    var errEl = document.getElementById('reset-error');
+    var msgEl = document.getElementById('reset-message');
+    errEl.style.display = 'none'; msgEl.style.display = 'none';
+    if (!pw || pw.length < 6) { errEl.innerHTML = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+    if (pw !== pw2) { errEl.innerHTML = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+    var res = await sb.auth.updateUser({ password: pw });
+    if (res.error) { errEl.innerHTML = res.error.message; errEl.style.display = 'block'; }
+    else { msgEl.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>Password updated! Signing you in...'; msgEl.style.display = 'block'; setTimeout(function() { document.getElementById('reset-screen').style.display = 'none'; showAppScreen(); initCourseRows(); renderAll(); }, 2000); }
+}
+
+// ---- Landing/pitch screen (shown once per device, before the person has ever seen auth) ----
+function shouldShowLanding() {
+    try { return !localStorage.getItem('gg_seen_landing_v1'); } catch(e) { return false; }
+}
+function dismissLanding() {
+    try { localStorage.setItem('gg_seen_landing_v1', '1'); } catch(e) {}
+    document.getElementById('landing-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function showAuthScreen() {
+    hideLoadingScreen();
+    document.getElementById('app-screen').style.display  = 'none';
+    if (shouldShowLanding()) {
+        document.getElementById('landing-screen').style.display = 'block';
+        document.getElementById('auth-screen').style.display = 'none';
+    } else {
+        document.getElementById('landing-screen').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
+    }
+    // Reset button state
+    var btn = document.getElementById('auth-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">' + (isSignUp ? 'Sign Up' : 'Sign In') + '</span>'; }
+}
+
+function showAppScreen() {
+    hideLoadingScreen();
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display  = 'block';
+}
+
+function toggleAuthMode() {
+    isSignUp = !isSignUp;
+    document.getElementById('auth-title').textContent       = isSignUp ? 'Create Account' : 'Welcome Back';
+    document.getElementById('auth-sub').textContent         = isSignUp ? 'Start tracking your grades' : 'Sign in to access your grades';
+    document.getElementById('auth-btn-text').textContent    = isSignUp ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+    document.getElementById('auth-toggle-btn').textContent  = isSignUp ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-error').style.display   = 'none';
+    document.getElementById('auth-message').style.display = 'none';
+    updatePasswordStrength();
+}
+
+// ---- Password strength (sign-up only — existing users' passwords aren't retroactively judged) ----
+function isPasswordStrongEnough(pw) {
+    return pw.length >= 8 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw);
+}
+function updatePasswordStrength() {
+    var bar = document.getElementById('pwStrengthBar');
+    if (!isSignUp) { bar.style.display = 'none'; return; }
+    var pw = document.getElementById('auth-password').value;
+    if (!pw) { bar.style.display = 'none'; return; }
+    bar.style.display = 'block';
+    var score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^a-zA-Z0-9]/.test(pw)) score++;
+    var fill  = document.getElementById('pwStrengthFill');
+    var label = document.getElementById('pwStrengthLabel');
+    var pct = Math.min((score / 5) * 100, 100);
+    var color = '#ef4444', text = 'Weak';
+    if (score >= 4) { color = '#22c55e'; text = 'Strong'; }
+    else if (score >= 2) { color = '#f59e0b'; text = 'Fair'; }
+    fill.style.width = pct + '%';
+    fill.style.background = color;
+    label.textContent = text + (pw.length < 8 ? ' — use at least 8 characters, with a letter and a number' : '');
+}
+
+async function signInWithGoogle() {
+    applySharedDevicePreference();
+    var res = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: 'https://gradeguard-app.netlify.app' }
+    });
+    if (res.error) { showAuthError(res.error.message); }
+    // On success, Supabase redirects to Google and back — onAuthStateChange takes it from there.
+}
+
+// Reads the "shared/public computer" checkbox and stores the preference in sessionStorage
+// (so it survives a same-tab OAuth redirect), then applies it immediately for this session.
+function applySharedDevicePreference() {
+    var checkbox = document.getElementById('sharedDeviceCheck');
+    var checked = !!(checkbox && checkbox.checked);
+    useSessionStorageOnly = checked;
+    try { sessionStorage.setItem('gg_shared_device', checked ? '1' : '0'); } catch(e) {}
+}
+
+async function handleForgotPassword() {
+    var email = document.getElementById('auth-email').value.trim();
+    if (!email) { showAuthError('Enter your email first, then click Forgot password.'); return; }
+    var res = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://gradeguard-app.netlify.app'
+    });
+    if (res.error) { showAuthError(res.error.message); }
+    else { showAuthMsg('Password reset link sent! Check your email inbox.'); }
+}
+
+async function handleAuth() {
+    var email    = document.getElementById('auth-email').value.trim();
+    var password = document.getElementById('auth-password').value;
+    var btn      = document.getElementById('auth-btn');
+    if (!email || !password) { showAuthError('Please enter your email and password.'); return; }
+    if (isSignUp && !isPasswordStrongEnough(password)) { showAuthError('Password must be at least 8 characters and include a letter and a number.'); return; }
+    if (!isSignUp && password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+    applySharedDevicePreference();
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Please wait...';
+    if (isSignUp) {
+        var res = await sb.auth.signUp({ email: email, password: password });
+        if (res.error) { showAuthError(res.error.message); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>'; }
+        else { showAuthMsg('Account created! Check your email to confirm, then sign in.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>'; }
+    } else {
+        var res = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (res.error) { showAuthError(res.error.message); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign In</span>'; }
+        // success handled by onAuthStateChange
+    }
+}
+
+function showAuthError(msg) {
+    var el = document.getElementById('auth-error');
+    el.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>' + msg;
+    el.style.display = 'block';
+    document.getElementById('auth-message').style.display = 'none';
+}
+function showAuthMsg(msg) {
+    var el = document.getElementById('auth-message');
+    el.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>' + msg;
+    el.style.display = 'block';
+    document.getElementById('auth-error').style.display = 'none';
+}
+
+async function handleSignOut() {
+    if (hasPendingChanges()) {
+        toast("You have changes that haven't synced to the cloud yet. They're kept safely on this device and will sync automatically next time you sign in here — but they will remain in this browser's storage until then.", 'warning', 8000);
+    } else {
+        // Nothing unsynced left — safe to wipe this device's cached copy of the data now,
+        // so it doesn't linger in browser storage after sign-out (important on shared/public computers).
+        clearAllLocalDataFor(cacheKey());
+    }
+    await sb.auth.signOut();
+    semesters = []; profile = {}; goals = []; currentUser = null;
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    showAuthScreen();
+}
+
+function setSyncStatus(status) {
+    var badge = document.getElementById('sync-badge');
+    if (status === 'saving')  badge.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i><span class="sync-text"> Saving...</span>';
+    else if (status === 'synced') badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#22c55e;"></i><span class="sync-text"> Synced</span>';
+    else if (status === 'loading') badge.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i><span class="sync-text"> Loading...</span>';
+    else if (status === 'error')  badge.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i><span class="sync-text"> Sync error</span>';
+    else if (status === 'offline') badge.innerHTML = '<i class="fa-solid fa-wifi" style="color:#f59e0b;"></i><span class="sync-text"> Offline — saved on device</span>';
+    else badge.innerHTML = '';
+}
+
+// ---- Onboarding tour (first-time walkthrough) ----
+var TOUR_STEPS = [
+    { tab: 'dashboard', selector: '.header-left', title: 'Welcome to GradeGuard! 👋', text: "Let's do a 30-second tour so you know exactly where everything is. Tap Next to continue, or Skip tour any time." },
+    { tab: 'dashboard', selector: '.stats-grid', title: 'Your Dashboard', text: 'This is your home base — your CGPA, semester count, best GPA, and total courses update automatically every time you add a semester.' },
+    { tab: 'dashboard', selector: '.standing-card', title: 'Class Standing', text: 'This bar shows exactly where you sit — Pass, Third Class, Second Class, or First Class — based on your current CGPA.' },
+    { tab: 'add', selector: '.quick-actions-row', title: 'Adding semesters, the fast way', text: '"Copy Last Semester\'s Courses" pre-fills your course list from last time. "Paste Grades Instead" lets you paste a whole list at once instead of typing each course one by one.' },
+    { tab: 'add', selector: '.course-header', title: 'Retaking a course?', text: 'If you\'re re-entering a course you failed before, tick the ↺ Resit box. GradeGuard will automatically stop counting the old failed attempt in your CGPA.' },
+    { tab: 'calculator', selector: '#page-calculator .card', title: 'Target GPA Calculator', text: 'Not sure what grades you need to graduate with First Class or Second Class Upper? Enter your numbers here and GradeGuard tells you exactly what GPA you need per semester.' },
+    { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list — this personalizes GradeGuard for your institution." },
+    { tab: 'profile', selector: '.switch-row', title: '100L doesn\'t always count', text: "Some universities don't count your first year toward final CGPA. If yours doesn't, flip this on." },
+    { tab: 'dashboard', selector: '#exportActionsRow', title: 'Show off your progress', text: 'Once you\'ve added a semester, hit "Export PDF" any time for a clean, shareable transcript-style document of your academic record.' },
+];
+var tourIdx = 0;
+var tourResizeHandler = null;
+
+function startTour(manual) {
+    tourIdx = 0;
+    document.getElementById('tourMask').classList.add('show');
+    showTourStep();
+}
+function askReplayTour() {
+    document.getElementById('tourConfirmModal').classList.add('show');
+}
+function cancelReplayTour() {
+    document.getElementById('tourConfirmModal').classList.remove('show');
+}
+function confirmReplayTour() {
+    document.getElementById('tourConfirmModal').classList.remove('show');
+    startTour(true);
+}
+function endTour() {
+    document.getElementById('tourMask').classList.remove('show');
+    try { localStorage.setItem('gg_tour_done_v1', '1'); } catch(e) {}
+    if (tourResizeHandler) { window.removeEventListener('resize', tourResizeHandler); tourResizeHandler = null; }
+}
+function nextTourStep() {
+    tourIdx++;
+    if (tourIdx >= TOUR_STEPS.length) { endTour(); return; }
+    showTourStep();
+}
+function showTourStep() {
+    var step = TOUR_STEPS[tourIdx];
+    activateTab(step.tab);
+    document.getElementById('tourStepCount').textContent = 'Step ' + (tourIdx + 1) + ' of ' + TOUR_STEPS.length;
+    document.getElementById('tourTitle').textContent = step.title;
+    document.getElementById('tourText').textContent = step.text;
+    document.getElementById('tourNextBtn').textContent = (tourIdx === TOUR_STEPS.length - 1) ? "Got it, let's go!" : 'Next';
+    document.getElementById('tourHighlight').style.opacity = '0';
+    positionHighlight(step.selector);
+    if (!tourResizeHandler) {
+        tourResizeHandler = function() { positionHighlight(TOUR_STEPS[tourIdx].selector); };
+        window.addEventListener('resize', tourResizeHandler);
+    }
+}
+// Scrolls instantly (no animation to race against), waits one paint cycle, then measures.
+function positionHighlight(selector) {
+    var el = document.querySelector(selector);
+    var box = document.getElementById('tourHighlight');
+    if (!el) { box.style.opacity = '0'; return; }
+    el.scrollIntoView({ block: 'center', behavior: 'auto' });
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            var r = el.getBoundingClientRect();
+            box.style.opacity = '1';
+            box.style.top = (r.top - 8) + 'px';
+            box.style.left = (r.left - 8) + 'px';
+            box.style.width = (r.width + 16) + 'px';
+            box.style.height = (r.height + 16) + 'px';
+        });
+    });
+}
+function maybeAutoStartTour() {
+    var seen = false;
+    try { seen = !!localStorage.getItem('gg_tour_done_v1'); } catch(e) {}
+    if (!seen) setTimeout(function() { startTour(false); }, 900);
+}
+
+// ---- Toast notifications (replaces alert()) ----
+function toast(message, type, timeoutMs) {
+    type = type || 'info';
+    timeoutMs = timeoutMs || 4000;
+    var icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+    var wrap = document.getElementById('toastWrap');
+    var el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + ' toast-icon"></i><span>' + escapeHtml(message) + '</span><button class="toast-close" aria-label="Dismiss notification" onclick="dismissToast(this.parentElement)"><i class="fa-solid fa-xmark"></i></button>';
+    wrap.appendChild(el);
+    if (timeoutMs > 0) setTimeout(function() { dismissToast(el); }, timeoutMs);
+}
+function dismissToast(el) {
+    if (!el || !el.parentElement) return;
+    el.classList.add('leaving');
+    setTimeout(function() { if (el.parentElement) el.remove(); }, 200);
+}
+
+// ---- Password visibility toggle ----
+function togglePwVisibility(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+}
+
+// ---- University search dropdown ----
+function onUniInput() {
+    var q = document.getElementById('profileUni').value.trim().toLowerCase();
+    var dd = document.getElementById('uniDropdown');
+    if (!q) { dd.classList.remove('show'); return; }
+    uniFilteredList = NIGERIAN_UNIVERSITIES.filter(function(u) { return u[0].toLowerCase().indexOf(q) !== -1; }).slice(0, 8);
+    uniHighlightIdx = -1;
+    if (!uniFilteredList.length) { dd.innerHTML = '<div class="uni-empty">No match — you can still type your university\'s full name manually.</div>'; dd.classList.add('show'); return; }
+    dd.innerHTML = uniFilteredList.map(function(u, i) {
+        return '<div class="uni-option" onmousedown="selectUni(' + i + ')"><div>' + u[0] + '</div><div class="uni-state">' + u[1] + ' State</div></div>';
+    }).join('');
+    dd.classList.add('show');
+}
+function selectUni(i) {
+    var u = uniFilteredList[i];
+    if (!u) return;
+    document.getElementById('profileUni').value = u[0];
+    document.getElementById('uniDropdown').classList.remove('show');
+}
+
+// ---- Advanced grading scale ----
+function toggleAdvancedScale() {
+    var panel = document.getElementById('advancedScalePanel');
+    var icon  = document.getElementById('advScaleIcon');
+    var open = panel.classList.toggle('show');
+    icon.className = open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-sliders';
+    if (open) renderScaleRows(GRADE_POINTS());
+}
+function renderScaleRows(points) {
+    document.getElementById('scaleRows').innerHTML = ALL_GRADES.map(function(g) {
+        return '<div class="scale-row"><div class="grade-badge ' + GRADE_CLASS[g] + '">' + g + '</div><div style="font-size:12px;color:var(--text2);">Grade point for ' + g + '</div><input type="number" step="0.1" min="0" max="5" class="scale-input" data-grade="' + g + '" value="' + points[g] + '"></div>';
+    }).join('');
+}
+function resetScaleDefaults() { renderScaleRows(DEFAULT_GRADE_POINTS); }
+function readScaleFromForm() {
+    var inputs = document.querySelectorAll('.scale-input');
+    if (!inputs.length) return null;
+    var out = {};
+    inputs.forEach(function(inp) { out[inp.dataset.grade] = parseFloat(inp.value) || 0; });
+    return out;
+}
+
+// ---- Target GPA Calculator: dynamic grading-scale reference (respects custom scales) ----
+function renderGradingReference() {
+    var pts = GRADE_POINTS();
+    var isCustom = !!(profile && profile.customScale);
+    document.getElementById('gradingRefTitle').innerHTML = '<i class="fa-solid fa-table" style="color:var(--accent);margin-right:6px;"></i>' + (isCustom ? "Your University's Grading Scale" : 'Nigerian Grading Scale Reference');
+    document.getElementById('gradingRefGrid').innerHTML = ALL_GRADES.map(function(g) {
+        return '<div class="grading-item"><div class="grade-badge ' + GRADE_CLASS[g] + '" style="margin:0 auto 8px;">' + g + '</div><div style="font-size:10px;color:var(--text3);">' + GRADE_PERCENT_BAND[g] + '</div><div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;">' + pts[g].toFixed(1) + '</div></div>';
+    }).join('');
+}
+
+// ---- Clamp course units to a sane 1–6 range so stray edits can't distort GPA math ----
+function clampUnits(n) {
+    n = parseInt(n);
+    if (isNaN(n)) return 1;
+    if (n < 1) return 1;
+    if (n > 6) return 6;
+    return n;
+}
+
+function isTempId(id) { return typeof id === 'string' && id.indexOf('local-') === 0; }
+function cacheKey() { return currentUser ? currentUser.id : 'anon'; }
+
+// ---- Referral link (campus-network growth loop) ----
+// Peer comparison only activates once 5+ students at the same university & level have opted
+// in — which means the feature gets more valuable the more classmates join. This surfaces that
+// explicitly with a shareable link instead of leaving it as a silent backend threshold.
+// The code itself is just a short slice of the user's id — good enough to make links unique
+// and shareable today without needing a dedicated referrals table. If/when real referral
+// attribution matters (e.g. rewarding the referrer), this is the natural place to extend it.
+function getReferralCode() {
+    if (!currentUser) return 'GG';
+    return currentUser.id.replace(/-/g, '').slice(0, 8).toUpperCase();
+}
+function getReferralLink() {
+    return 'https://gradeguard-app.netlify.app/?ref=' + getReferralCode();
+}
+async function copyReferralLink() {
+    var link = getReferralLink();
+    try {
+        await navigator.clipboard.writeText(link);
+        toast('Invite link copied! Share it with classmates to unlock peer comparison faster.', 'success');
+    } catch (e) {
+        // Clipboard API can fail on older/locked-down mobile browsers — fall back to a prompt
+        // so the link is still usable rather than silently doing nothing.
+        window.prompt('Copy this invite link:', link);
+    }
+}
+// Captures ?ref=CODE from the URL on first load and stashes it locally. Not yet wired to any
+// backend attribution table — this is groundwork so that piece can be added later (e.g. crediting
+// the referrer) without having to touch the client again once that table exists.
+function captureReferralFromUrl() {
+    try {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref && !localStorage.getItem('gg_referred_by')) {
+            localStorage.setItem('gg_referred_by', ref);
+        }
+    } catch (e) {}
+}
+captureReferralFromUrl();
+
+function saveLocalCache() {
+    try { storageBackend().setItem('gg_cache_' + cacheKey(), JSON.stringify({ semesters: semesters, profile: profile, goals: goals })); } catch(e) {}
+}
+function loadLocalCache() {
+    try {
+        var raw = storageBackend().getItem('gg_cache_' + cacheKey());
+        if (raw) { var d = JSON.parse(raw); semesters = d.semesters || []; profile = d.profile || {}; goals = d.goals || []; return true; }
+    } catch(e) {}
+    return false;
+}
+function savePendingState() {
+    try { storageBackend().setItem('gg_pending_' + cacheKey(), JSON.stringify({ creates: pendingCreates, updates: pendingUpdates, deletes: pendingDeletes, profile: pendingProfile })); } catch(e) {}
+}
+function loadPendingState() {
+    try {
+        var raw = storageBackend().getItem('gg_pending_' + cacheKey());
+        if (raw) {
+            var d = JSON.parse(raw);
+            pendingCreates = d.creates || []; pendingUpdates = d.updates || {}; pendingDeletes = d.deletes || []; pendingProfile = d.profile || null;
+        }
+    } catch(e) {}
+}
+function hasPendingChanges() {
+    return pendingCreates.length > 0 || Object.keys(pendingUpdates).length > 0 || pendingDeletes.length > 0 || !!pendingProfile;
+}
+
+window.addEventListener('offline', function() {
+    isOnline = false;
+    if (currentUser) { setSyncStatus('offline'); toast("You're offline — changes will be saved on this device and synced automatically when you reconnect.", 'warning', 6000); }
+});
+window.addEventListener('online', function() {
+    isOnline = true;
+    if (currentUser) { toast('Back online — syncing your changes...', 'info', 3000); processPendingQueue(); }
+});
+
+// Pushes every queued offline change to Supabase, in order. Safe to call
+// repeatedly — it's a no-op if there's nothing pending or we're not online.
+// Also does a light-touch conflict check on updates: if a semester was changed
+// on another device since we last loaded it, we still sync our edit (there's no
+// merge UI yet) but we warn the person so they know to double check it.
+async function processPendingQueue() {
+    if (!currentUser || !isOnline || syncInProgress) return;
+    if (!hasPendingChanges()) { setSyncStatus('synced'); return; }
+    syncInProgress = true;
+    setSyncStatus('saving');
+    try {
+        // 1. Creates (semesters made entirely offline)
+        while (pendingCreates.length) {
+            var create = pendingCreates[0];
+            var res = await sb.from('semesters').insert({ user_id: currentUser.id, name: create.name, courses: create.courses, gpa: create.gpa, level: create.level, display_order: semesters.length }).select().single();
+            if (res.error) throw res.error;
+            var idx = semesters.findIndex(function(s) { return s.id === create.tempId; });
+            if (idx !== -1) {
+                semesters[idx].id = res.data.id;
+                semesters[idx].serverSnapshot = JSON.stringify({ name: create.name, courses: create.courses, gpa: create.gpa, level: create.level });
+            }
+            pendingCreates.shift();
+            savePendingState(); saveLocalCache();
+        }
+        // 2. Updates to already-synced semesters (with a light conflict check)
+        for (var realId in pendingUpdates) {
+            if (!pendingUpdates.hasOwnProperty(realId)) continue;
+            var upd = pendingUpdates[realId];
+            var localSem = semesters.find(function(s) { return s.id === realId; });
+            try {
+                var checkRes = await sb.from('semesters').select('name,courses,gpa,level').eq('id', realId).maybeSingle();
+                if (checkRes.data && localSem && localSem.serverSnapshot) {
+                    var remoteSnap = JSON.stringify({ name: checkRes.data.name, courses: checkRes.data.courses, gpa: checkRes.data.gpa, level: checkRes.data.level });
+                    if (remoteSnap !== localSem.serverSnapshot) {
+                        toast('Heads up: "' + upd.name + '" was also changed on another device. Your latest edit here was saved — worth a quick double-check that it looks right.', 'warning', 8000);
+                    }
+                }
+            } catch (checkErr) { /* non-fatal — proceed with the update either way */ }
+            var ures = await sb.from('semesters').update({ name: upd.name, courses: upd.courses, gpa: upd.gpa, level: upd.level, updated_at: upd.updatedAt || new Date().toISOString() }).eq('id', realId);
+            if (ures.error) throw ures.error;
+            if (localSem) localSem.serverSnapshot = JSON.stringify({ name: upd.name, courses: upd.courses, gpa: upd.gpa, level: upd.level });
+            delete pendingUpdates[realId];
+            savePendingState(); saveLocalCache();
+        }
+        // 3. Deletes
+        while (pendingDeletes.length) {
+            var delId = pendingDeletes[0];
+            var dres = await sb.from('semesters').delete().eq('id', delId);
+            if (dres.error) throw dres.error;
+            pendingDeletes.shift();
+            savePendingState(); saveLocalCache();
+        }
+        // 4. Profile
+        if (pendingProfile) {
+            var pres = await sb.from('profiles').upsert(pendingProfile);
+            if (pres.error) throw pres.error;
+            pendingProfile = null;
+            savePendingState(); saveLocalCache();
+        }
+        setSyncStatus('synced');
+        toast('All changes synced to the cloud!', 'success');
+    } catch (e) {
+        // Still offline or a real error — leave whatever's left in the queue for next time.
+        setSyncStatus(isOnline ? 'error' : 'offline');
+    }
+    syncInProgress = false;
+}
+
+// KEY FIX: onAuthStateChange — show app FIRST, load data in background
+sb.auth.onAuthStateChange(async function(event, session) {
+    if (event === 'SIGNED_OUT') { showAuthScreen(); return; }
+    if (event === 'PASSWORD_RECOVERY') { showResetScreen(); return; }
+    if (session && session.user) {
+        currentUser = session.user;
+        document.getElementById('user-email-display').textContent = currentUser.email;
+        // Show app immediately — no waiting
+        showAppScreen();
+        initCourseRows();
+        renderAll();
+        maybeAutoStartTour();
+        // Load data in background
+        setSyncStatus('loading');
+        try {
+            await loadData();
+            renderAll();
+        } catch(e) {
+            setSyncStatus('error');
+        }
+    } else {
+        showAuthScreen();
+    }
+});
+
+async function loadData() {
+    loadPendingState();
+    if (!navigator.onLine) {
+        isOnline = false;
+        var hadCache = loadLocalCache();
+        setSyncStatus('offline');
+        if (hadCache) toast("You're offline — showing your last saved data. New changes will sync once you reconnect.", 'warning', 6000);
+        return;
+    }
+    try {
+        var semRes = await sb.from('semesters').select('*').eq('user_id', currentUser.id).order('display_order', { ascending: true });
+        if (semRes.error) throw semRes.error;
+        semesters = semRes.data.map(function(row) {
+            return { id: row.id, name: row.name, courses: row.courses, gpa: parseFloat(row.gpa) || 0, level: row.level || '', updatedAt: row.updated_at || row.created_at || null, serverSnapshot: JSON.stringify({ name: row.name, courses: row.courses, gpa: parseFloat(row.gpa) || 0, level: row.level || '' }) };
+        });
+        var profRes = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+        if (profRes.error) throw profRes.error;
+        if (profRes.data) {
+            var p = profRes.data;
+            profile = { name: p.name||'', matric: p.matric||'', dept: p.dept||'', faculty: p.faculty||'', level: p.level||'', session: p.session||'', uni: p.uni||'', exclude100L: !!p.exclude_100l, customScale: p.custom_scale || null, totalSemesters: p.total_semesters || null, participatePeerStats: !!p.participate_in_peer_stats };
+            loadProfileFields();
+        }
+        try {
+            var goalsRes = await sb.from('goals').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
+            if (goalsRes.error) throw goalsRes.error;
+            goals = goalsRes.data.map(function(row) { return { id: row.id, label: row.label, targetCgpa: parseFloat(row.target_cgpa) }; });
+        } catch (goalsErr) { /* goals table may not exist yet if the migration hasn't run — fail quietly, rest of the app still works */ }
+        // Re-apply anything that was queued from a previous offline session, so it isn't lost
+        pendingCreates.forEach(function(c) { if (!semesters.find(function(s){return s.id===c.tempId;})) semesters.push({ id: c.tempId, name: c.name, courses: c.courses, gpa: c.gpa, level: c.level, updatedAt: new Date().toISOString() }); });
+        for (var rid in pendingUpdates) { var s = semesters.find(function(s){return s.id===rid;}); if (s) { var u = pendingUpdates[rid]; s.name=u.name; s.courses=u.courses; s.gpa=u.gpa; s.level=u.level; } }
+        semesters = semesters.filter(function(s) { return pendingDeletes.indexOf(s.id) === -1; });
+        if (pendingProfile) { profile.exclude100L = !!pendingProfile.exclude_100l; profile.customScale = pendingProfile.custom_scale || profile.customScale; profile.totalSemesters = pendingProfile.total_semesters || profile.totalSemesters; loadProfileFields(); }
+        applyResitExclusions();
+        saveLocalCache();
+        isOnline = true;
+        setSyncStatus('synced');
+        fetchAndRenderPeerComparison();
+        if (hasPendingChanges()) processPendingQueue();
+    } catch (e) {
+        isOnline = false;
+        var hadCache2 = loadLocalCache();
+        setSyncStatus('offline');
+        if (hadCache2) toast("Couldn't reach the server — showing your last saved data instead.", 'warning', 6000);
+    }
+}
+
+async function saveSemester() {
+    if (savingSemesterLock) return;
+    var saveBtn = document.getElementById('saveSemesterBtn');
+    var name = document.getElementById('semesterName').value.trim();
+    if (!name) { toast('Please enter a semester name.', 'warning'); return; }
+    var level = document.getElementById('semesterLevel').value;
+    var rows = document.querySelectorAll('.course-row');
+    var courses = [];
+    rows.forEach(function(row) {
+        var cn = row.querySelector('.course-name').value.trim();
+        var u  = parseInt(row.querySelector('.course-units').value);
+        var g  = row.querySelector('.grade-select').value;
+        var resit = row.querySelector('.resit-input') ? row.querySelector('.resit-input').checked : false;
+        if (cn && u && g) courses.push({ name: cn, units: clampUnits(u), grade: g, resit: resit });
+    });
+    if (!courses.length) { toast('Add at least one course with a grade.', 'warning'); return; }
+    savingSemesterLock = true;
+    if (saveBtn) saveBtn.disabled = true;
+    var gpa = calculateGPA(courses);
+    var tempId = 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    var nowIso = new Date().toISOString();
+    semesters.push({ id: tempId, name: name, courses: courses, gpa: gpa, level: level, updatedAt: nowIso });
+    pendingCreates.push({ tempId: tempId, name: name, courses: courses, gpa: gpa, level: level });
+    applyResitExclusions();
+    savePendingState(); saveLocalCache();
+    renderAll();
+    document.getElementById('semesterName').value = '';
+    document.getElementById('semesterLevel').value = '';
+    initCourseRows();
+    switchTab('dashboard');
+    if (isOnline) { processPendingQueue(); toast('Semester saved to cloud!', 'success'); syncPeerCgpaIfOptedIn(); }
+    else { setSyncStatus('offline'); toast("Saved on this device — it'll sync to the cloud once you're back online.", 'warning'); }
+    setTimeout(function() { savingSemesterLock = false; if (saveBtn) saveBtn.disabled = false; }, 900);
+}
+
+// Any course in this semester marked "resit" causes the most recent EARLIER
+// semester's same-named course (that was E/F) to be excluded from CGPA math,
+// so units/points aren't double-counted while the original attempt still
+// stays visible in the history for the record. Ordering is based on academic
+// level (see LEVEL_RANK below), not insertion order, so backfilling an earlier
+// semester after a later one already exists no longer confuses resit-matching.
+// Remaining edge case: two semesters at the SAME level ("100L first" vs "100L
+// second") fall back to insertion order between them, since there's no explicit
+// semester-number field — fine in practice since same-level semesters are rarely
+// added out of order.
+// Maps a semester's level to its true chronological rank — used instead of insertion order,
+// since a student adding/backfilling an earlier semester after a later one already exists would
+// otherwise cause resit-matching to look at the wrong "previous" attempt. Semesters without a
+// level set fall back to the end of the ranking (999) rather than being treated as earliest,
+// so an unset level can't accidentally block a legitimate resit match.
+var LEVEL_RANK = { '100L': 1, '200L': 2, '300L': 3, '400L': 4, '500L': 5, '600L': 6 };
+
+function applyResitExclusions() {
+    semesters.forEach(function(s) { s.courses.forEach(function(c) { c.excluded = false; }); });
+    // Sort by level first (the real chronological signal), falling back to original list order
+    // as a tiebreaker between two semesters at the same level (e.g. "first" vs "second" semester).
+    var ordered = semesters.map(function(s, i) { return { sem: s, origIndex: i }; }).sort(function(a, b) {
+        var ra = LEVEL_RANK[a.sem.level] || 999;
+        var rb = LEVEL_RANK[b.sem.level] || 999;
+        if (ra !== rb) return ra - rb;
+        return a.origIndex - b.origIndex;
+    }).map(function(x) { return x.sem; });
+    ordered.forEach(function(sem, semIdx) {
+        sem.courses.forEach(function(c) {
+            if (!c.resit) return;
+            for (var i = semIdx - 1; i >= 0; i--) {
+                var match = ordered[i].courses.find(function(oc) {
+                    return oc.name.trim().toLowerCase() === c.name.trim().toLowerCase() && (oc.grade === 'E' || oc.grade === 'F') && !oc.excluded;
+                });
+                if (match) { match.excluded = true; break; }
+            }
+        });
+    });
+}
+
+async function updateSemester(id, btn) {
+    if (updatingLock[id]) return;
+    var card = document.getElementById('semCard-' + id);
+    var rows = card.querySelectorAll('.edit-row');
+    var courses = [];
+    rows.forEach(function(row) {
+        var n = row.querySelector('.edit-name').value.trim();
+        var u = parseInt(row.querySelector('.edit-units').value);
+        var g = row.querySelector('.edit-grade').value;
+        var resit = row.querySelector('.edit-resit') ? row.querySelector('.edit-resit').checked : false;
+        if (n && u && g) courses.push({ name: n, units: clampUnits(u), grade: g, resit: resit });
+    });
+    if (!courses.length) { toast('Keep at least one course in the semester.', 'warning'); return; }
+    updatingLock[id] = true;
+    if (btn) btn.disabled = true;
+    var semName = card.querySelector('.sem-name-input').value.trim();
+    var levelSelect = card.querySelector('.edit-level');
+    var level = levelSelect ? levelSelect.value : '';
+    var gpa = calculateGPA(courses);
+    var nowIso = new Date().toISOString();
+    var idx = semesters.findIndex(function(s) { return s.id === id; });
+    if (idx !== -1) semesters[idx] = { id: id, name: semName, courses: courses, gpa: gpa, level: level, serverSnapshot: semesters[idx].serverSnapshot, updatedAt: nowIso };
+    if (isTempId(id)) {
+        var pc = pendingCreates.find(function(c) { return c.tempId === id; });
+        if (pc) { pc.name = semName; pc.courses = courses; pc.gpa = gpa; pc.level = level; }
+    } else {
+        pendingUpdates[id] = { name: semName, courses: courses, gpa: gpa, level: level, updatedAt: nowIso };
+    }
+    applyResitExclusions();
+    savePendingState(); saveLocalCache();
+    renderAll();
+    if (isOnline) { processPendingQueue(); toast('Semester updated!', 'success'); syncPeerCgpaIfOptedIn(); }
+    else { setSyncStatus('offline'); toast("Updated on this device — it'll sync once you're back online.", 'warning'); }
+    setTimeout(function() { updatingLock[id] = false; }, 900);
+}
+
+function removeEditRow(btn) {
+    var tbody = btn.closest('tbody');
+    if (tbody.querySelectorAll('.edit-row').length <= 1) { toast('A semester needs at least one course.', 'warning'); return; }
+    btn.closest('tr').remove();
+}
+
+function openDeleteModal(id) { deleteId = id; document.getElementById('deleteModal').classList.add('show'); }
+function closeModal() { document.getElementById('deleteModal').classList.remove('show'); deleteId = null; }
+
+async function confirmDelete() {
+    if (!deleteId) return;
+    var id = deleteId;
+    semesters = semesters.filter(function(s) { return s.id !== id; });
+    if (isTempId(id)) {
+        pendingCreates = pendingCreates.filter(function(c) { return c.tempId !== id; });
+    } else {
+        delete pendingUpdates[id];
+        if (pendingDeletes.indexOf(id) === -1) pendingDeletes.push(id);
+    }
+    applyResitExclusions();
+    savePendingState(); saveLocalCache();
+    closeModal();
+    renderAll();
+    if (isOnline) { processPendingQueue(); toast('Semester deleted.', 'info'); syncPeerCgpaIfOptedIn(); }
+    else { setSyncStatus('offline'); toast("Deleted on this device — it'll sync once you're back online.", 'warning'); }
+}
+
+// ---- Delete account & data ----
+function openDeleteAccountModal() { document.getElementById('deleteAccountModal').classList.add('show'); }
+function closeDeleteAccountModal() { document.getElementById('deleteAccountModal').classList.remove('show'); }
+async function confirmDeleteAccount() {
+    closeDeleteAccountModal();
+    if (!isOnline) { toast("You need to be online to delete your account — please reconnect and try again.", 'warning', 6000); return; }
+    toast('Deleting your account and data...', 'info', 3000);
+    try {
+        var res = await sb.functions.invoke('delete-account');
+        if (res.error) throw res.error;
+        if (res.data && res.data.error) throw new Error(res.data.error);
+        clearAllLocalDataFor(cacheKey());
+        toast('Your GradeGuard account and data have been permanently deleted.', 'success', 4000);
+        setTimeout(handleSignOut, 1200);
+    } catch (e) {
+        toast("Couldn't delete your account — check your connection and try again.", 'error', 6000);
+    }
+}
+
+// ---- Download a full JSON backup of profile + semesters ----
+function exportUserDataJSON() {
+    // Strip internal bookkeeping fields (like serverSnapshot, used only for offline-conflict
+    // detection) before export — a student downloading their own data shouldn't see internals.
+    var cleanSemesters = semesters.map(function(s) {
+        return { id: s.id, name: s.name, courses: s.courses, gpa: s.gpa, level: s.level };
+    });
+    var payload = { exportedAt: new Date().toISOString(), profile: profile, semesters: cleanSemesters, goals: goals };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (profile.name ? profile.name.replace(/\s+/g,'_') : 'GradeGuard') + '_data_backup.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Your data backup has downloaded.', 'success');
+}
+
+async function saveProfile() {
+    var customScale = readScaleFromForm();
+    var totalSemRaw = parseInt(document.getElementById('profileTotalSemesters').value);
+    profile = {
+        name: document.getElementById('profileName').value,
+        matric: document.getElementById('profileMatric').value,
+        dept: document.getElementById('profileDept').value,
+        faculty: document.getElementById('profileFaculty').value,
+        level: document.getElementById('profileLevel').value,
+        session: document.getElementById('profileSession').value,
+        uni: document.getElementById('profileUni').value,
+        exclude100L: document.getElementById('exclude100L').checked,
+        customScale: customScale ? JSON.stringify(customScale) : null,
+        totalSemesters: (!isNaN(totalSemRaw) && totalSemRaw > 0) ? totalSemRaw : null,
+        participatePeerStats: document.getElementById('peerOptIn').checked,
+    };
+    var dbRow = { id: currentUser.id, name: profile.name, matric: profile.matric, dept: profile.dept, faculty: profile.faculty, level: profile.level, session: profile.session, uni: profile.uni, exclude_100l: profile.exclude100L, custom_scale: profile.customScale, total_semesters: profile.totalSemesters, participate_in_peer_stats: profile.participatePeerStats };
+    pendingProfile = dbRow;
+    savePendingState(); saveLocalCache();
+    document.getElementById('profileNameDisplay').textContent = profile.name || 'Your Name';
+    document.getElementById('profileSubDisplay').textContent = [profile.level, profile.dept, profile.matric].filter(Boolean).join(' • ');
+    updateWelcomeBanner();
+    applyResitExclusions();
+    renderAll();
+    if (isOnline) { processPendingQueue(); toast('Profile saved to cloud!', 'success'); syncPeerCgpaIfOptedIn(); }
+    else { setSyncStatus('offline'); toast("Profile saved on this device — it'll sync once you're back online.", 'warning'); }
+    var msg = document.getElementById('profileMsg');
+    msg.style.display = 'flex';
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
+}
+
+function toggleTheme() {
+    var html = document.documentElement;
+    var isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').innerHTML = isDark ? '<i class="fa-solid fa-moon"></i><span>Dark Mode</span>' : '<i class="fa-solid fa-lightbulb"></i><span>Light Mode</span>';
+    if (chartInstance) renderChart();
+}
+
+function activateTab(name) {
+    document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.tab, .bottom-nav button').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('[data-tab="' + name + '"]').forEach(function(t) { t.classList.add('active'); });
+}
+function switchTab(name) {
+    activateTab(name);
+    if (name === 'calculator') {
+        renderGradingReference();
+        // Pre-fill from known data so students don't have to re-type numbers we already have
+        var cgpaInput = document.getElementById('currentCGPA');
+        var semInput  = document.getElementById('currentSem');
+        if (cgpaInput && !cgpaInput.value && semesters.length) cgpaInput.value = calculateCGPA();
+        if (semInput && !semInput.value && semesters.length) semInput.value = semesters.length;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- Real PDF transcript export (not just window.print) ----
+async function exportTranscriptPDF() {
+    if (!semesters.length) { toast('Add at least one semester before exporting a transcript.', 'warning'); return; }
+    if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF.API.autoTable) {
+        toast('Preparing your transcript...', 'info', 2500);
+        try { await ensurePdfLibs(); }
+        catch (e) { toast('Could not load the PDF engine — check your connection and try again.', 'error'); return; }
+    }
+    var doc = new window.jspdf.jsPDF();
+    var cgpa = calculateCGPA();
+    var standing = getStanding(parseFloat(cgpa));
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 32, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18); doc.setFont(undefined, 'bold');
+    doc.text('GradeGuard — Academic Transcript', 14, 15);
+    doc.setFontSize(10); doc.setFont(undefined, 'normal');
+    doc.text((profile.uni || 'Nigerian University') + '  •  Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), 14, 24);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(12); doc.setFont(undefined, 'bold');
+    doc.text(profile.name || 'Student', 14, 42);
+    doc.setFontSize(9); doc.setFont(undefined, 'normal');
+    var infoLine = [profile.matric, profile.dept, profile.level, profile.faculty].filter(Boolean).join('  •  ');
+    doc.text(infoLine || ' ', 14, 48);
+
+    doc.setFillColor(240, 249, 255);
+    doc.roundedRect(140, 36, 56, 18, 2, 2, 'F');
+    doc.setFontSize(8); doc.setTextColor(100, 116, 139);
+    doc.text('CGPA', 168, 42, { align: 'center' });
+    doc.setFontSize(16); doc.setTextColor(2, 132, 199); doc.setFont(undefined, 'bold');
+    doc.text(cgpa, 168, 50, { align: 'center' });
+    doc.setFontSize(7); doc.setTextColor(100, 116, 139); doc.setFont(undefined, 'normal');
+    doc.text(standing, 168, 53, { align: 'center' });
+
+    var y = 60;
+    semesters.forEach(function(s) {
+        var tu = s.courses.reduce(function(a,c){return a+c.units;}, 0);
+        doc.autoTable({
+            startY: y,
+            head: [[s.name + (s.level ? ' (' + s.level + ')' : ''), 'Units', 'Grade', 'Points']],
+            body: s.courses.map(function(c) {
+                var pts = GRADE_POINTS();
+                return [c.name + (c.resit ? '  (resit)' : '') + (c.excluded ? '  — excluded from CGPA' : ''), c.units, c.grade, (pts[c.grade]||0).toFixed(1)];
+            }),
+            foot: [['Semester GPA: ' + s.gpa + '   •   Total Units: ' + tu, '', '', '']],
+            theme: 'grid',
+            headStyles: { fillColor: [30, 58, 95], fontSize: 9 },
+            bodyStyles: { fontSize: 8.5 },
+            footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold', fontSize: 8.5 },
+            margin: { left: 14, right: 14 },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+        if (y > 260) { doc.addPage(); y = 20; }
+    });
+
+    doc.setFontSize(8); doc.setTextColor(148, 163, 184);
+    doc.text('Generated with GradeGuard — this is a self-tracking summary, not an official university transcript.', 14, 288);
+
+    doc.save((profile.name ? profile.name.replace(/\s+/g,'_') : 'GradeGuard') + '_Transcript.pdf');
+    toast('Transcript PDF downloaded!', 'success');
+}
+
+function updateWelcomeBanner() {
+    var banner = document.getElementById('welcomeBanner');
+    var text   = document.getElementById('welcomeText');
+    if (profile && profile.name) {
+        banner.classList.add('show');
+        var parts = [];
+        if (profile.name)   parts.push('<strong style="color:var(--accent);">' + escapeHtml(profile.name) + '</strong>');
+        if (profile.level)  parts.push(escapeHtml(profile.level));
+        if (profile.dept)   parts.push(escapeHtml(profile.dept));
+        if (profile.matric) parts.push(escapeHtml(profile.matric));
+        text.innerHTML = 'Welcome back, ' + parts.join(' &nbsp;&bull;&nbsp; ');
+    } else { banner.classList.remove('show'); }
+}
+
+// A gentle nudge if it's been a while since any semester was actually added or edited —
+// not just since the app was last opened. 90 days is roughly one Nigerian academic semester's
+// typical cycle, so this fires around the point a new set of results would plausibly be out.
+function renderReengagementNudge() {
+    var el = document.getElementById('reengagementNudge');
+    if (!el) return;
+    if (!semesters.length) { el.classList.remove('show'); return; }
+    var timestamps = semesters.map(function(s) { return s.updatedAt ? new Date(s.updatedAt).getTime() : 0; }).filter(function(t) { return t > 0; });
+    if (!timestamps.length) { el.classList.remove('show'); return; }
+    var lastActivity = Math.max.apply(null, timestamps);
+    var daysSince = Math.floor((Date.now() - lastActivity) / (1000 * 60 * 60 * 24));
+    var THRESHOLD_DAYS = 90;
+    if (daysSince < THRESHOLD_DAYS) { el.classList.remove('show'); return; }
+    var monthsSince = Math.floor(daysSince / 30);
+    var timeText = monthsSince >= 1 ? (monthsSince + ' month' + (monthsSince > 1 ? 's' : '')) : (daysSince + ' day' + (daysSince > 1 ? 's' : ''));
+    el.innerHTML = '<i class="fa-solid fa-bell" style="font-size:18px;color:var(--gold);flex-shrink:0;"></i><span>It\'s been <strong>' + timeText + '</strong> since you last updated GradeGuard. Add your latest semester to keep your CGPA, projection, and targets accurate.</span>';
+    el.classList.add('show');
+}
+
+function loadProfileFields() {
+    document.getElementById('exclude100L').checked = !!(profile && profile.exclude100L);
+    document.getElementById('peerOptIn').checked = !!(profile && profile.participatePeerStats);
+    fetchAndRenderPeerComparison();
+    var badge = document.getElementById('scale-badge');
+    if (badge) badge.textContent = (profile && profile.customScale) ? 'Custom Grading Scale' : 'Nigerian 5.0 Scale';
+    if (profile && profile.customScale) renderScaleRows(GRADE_POINTS());
+    if (!profile || !profile.name) return;
+    document.getElementById('profileName').value    = profile.name    || '';
+    document.getElementById('profileMatric').value  = profile.matric  || '';
+    document.getElementById('profileDept').value    = profile.dept    || '';
+    document.getElementById('profileFaculty').value = profile.faculty || '';
+    document.getElementById('profileLevel').value   = profile.level   || '';
+    document.getElementById('profileSession').value = profile.session || '';
+    document.getElementById('profileUni').value     = profile.uni     || '';
+    document.getElementById('profileTotalSemesters').value = profile.totalSemesters || '';
+    document.getElementById('profileNameDisplay').textContent = profile.name;
+    document.getElementById('profileSubDisplay').textContent  = [profile.level, profile.dept, profile.matric].filter(Boolean).join(' • ');
+    updateWelcomeBanner();
+}
+
+function gradeOptions(selected) {
+    var pts = GRADE_POINTS();
+    var descs = { 'A': 'Excellent', 'B': 'Good', 'C': 'Average', 'D': 'Below Avg', 'E': 'Poor', 'F': 'Fail' };
+    return '<option value="">Grade</option>' + ALL_GRADES.map(function(g) { return '<option value="' + g + '"' + (selected === g ? ' selected' : '') + '>' + g + ' — ' + descs[g] + ' (' + pts[g].toFixed(1) + ')</option>'; }).join('');
+}
+
+function initCourseRows() { document.getElementById('coursesList').innerHTML = ''; for (var i = 0; i < 3; i++) addCourseRow(); }
+
+function addCourseRow(prefillName, prefillUnits, prefillGrade) {
+    var list = document.getElementById('coursesList');
+    var row  = document.createElement('div');
+    row.className = 'course-row';
+    row.innerHTML = '<input type="text" placeholder="Course name e.g. MTH101" class="course-name" value="' + escapeHtml(prefillName || '') + '">' +
+        '<input type="number" placeholder="Units" class="course-units" min="1" max="6" value="' + escapeHtml(prefillUnits || '') + '">' +
+        '<select class="grade-select">' + gradeOptions(prefillGrade || '') + '</select>' +
+        '<label class="resit-check" title="This course is a resit of an earlier failed attempt"><input type="checkbox" class="resit-input"><i class="fa-solid fa-rotate-left"></i></label>' +
+        '<button class="btn-remove" onclick="this.parentElement.remove()" title="Remove course" aria-label="Remove this course"><i class="fa-solid fa-xmark"></i></button>';
+    list.appendChild(row);
+}
+
+function calculateGPA(courses) {
+    var pts = GRADE_POINTS();
+    var tp = 0, tu = 0;
+    courses.forEach(function(c) { if (c.excluded) return; tp += (pts[c.grade] || 0) * c.units; tu += c.units; });
+    return tu > 0 ? Math.round((tp / tu) * 100) / 100 : 0;
+}
+
+function getGPAColor(gpa) { if (gpa >= 4.5) return 'gpa-5'; if (gpa >= 3.5) return 'gpa-4'; if (gpa >= 2.5) return 'gpa-3'; if (gpa >= 1.5) return 'gpa-2'; return 'gpa-1'; }
+
+// True unit-weighted CGPA across every INCLUDED semester (not a simple average of semester GPAs),
+// respecting resit exclusions and the 100L-exclusion toggle.
+function calculateCGPA() {
+    var tp = 0, tu = 0;
+    var pts = GRADE_POINTS();
+    getIncludedSemesters().forEach(function(s) {
+        s.courses.forEach(function(c) {
+            if (c.excluded) return;
+            tp += (pts[c.grade] || 0) * c.units;
+            tu += c.units;
+        });
+    });
+    return tu > 0 ? (tp / tu).toFixed(2) : '0.00';
+}
+function getStanding(gpa) { return gpa >= 4.5 ? 'First Class' : gpa >= 3.5 ? 'Second Class Upper' : gpa >= 2.5 ? 'Second Class Lower' : gpa >= 1.5 ? 'Third Class' : gpa >= 1.0 ? 'Pass' : 'Fail'; }
+function toggleSemester(id) { document.getElementById('semCard-' + id).classList.toggle('expanded'); }
+
+// ---- Duplicate last semester's course list (grades left blank for re-entry) ----
+function duplicateLastSemester() {
+    if (!semesters.length) { toast('No previous semester to copy yet.', 'warning'); return; }
+    var last = semesters[semesters.length - 1];
+    document.getElementById('coursesList').innerHTML = '';
+    last.courses.forEach(function(c) { addCourseRow(c.name, c.units, ''); });
+    toast('Copied ' + last.courses.length + ' course(s) from "' + last.name + '" — just fill in the new grades.', 'info');
+}
+
+// ---- Paste-to-parse ----
+function togglePastePanel() { document.getElementById('pastePanel').classList.toggle('show'); }
+function parsePastedCourses() {
+    var text = document.getElementById('pasteText').value.trim();
+    if (!text) { toast('Paste your course list first.', 'warning'); return; }
+    var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+    var parsed = [];
+    lines.forEach(function(line) {
+        var clean = line.replace(/units?/gi, '').replace(/[-,|]/g, ' ').replace(/\s+/g, ' ').trim();
+        var tokens = clean.split(' ');
+        var grade = null, units = null, nameTokens = [];
+        for (var i = tokens.length - 1; i >= 0; i--) {
+            var t = tokens[i];
+            if (!grade && /^[A-Fa-f]$/.test(t)) { grade = t.toUpperCase(); continue; }
+            if (!units && /^[1-6]$/.test(t)) { units = parseInt(t); continue; }
+            nameTokens.unshift(t);
+        }
+        var name = nameTokens.join(' ').trim();
+        if (name && units && grade) parsed.push({ name: name, units: units, grade: grade });
+    });
+    if (!parsed.length) { toast('Could not read any courses from that text — try the format "MTH101 3 A", one per line.', 'error', 6000); return; }
+    document.getElementById('coursesList').innerHTML = '';
+    parsed.forEach(function(c) { addCourseRow(c.name, c.units, c.grade); });
+    document.getElementById('pastePanel').classList.remove('show');
+    document.getElementById('pasteText').value = '';
+    toast('Filled in ' + parsed.length + ' course(s) from your paste. Double-check before saving.', 'success');
+}
+
+// ---- Screenshot-to-grades (OCR) ----
+// Runs entirely in the browser (no server involved, no image ever leaves the device) using
+// Tesseract.js. Deliberately does NOT auto-fill course rows directly from the OCR result —
+// OCR on a phone screenshot is never perfect (fonts, glare, cropping all affect accuracy), so
+// the extracted text is placed into the same paste textarea the student would use manually,
+// letting them see and correct it before it becomes real data. This reuses parsePastedCourses()
+// rather than duplicating its parsing logic.
+//
+// A single worker is created once and reused for every scan in the session (createWorker is the
+// slow part — recognize() on an already-initialized worker is much faster), and status text
+// reflects every phase Tesseract reports, not just the final "recognizing text" step. Without
+// that, a slower connection spends its first 10-20+ seconds silently downloading the OCR engine
+// with the UI showing no visible progress at all — which reads as frozen even though it's working.
+var ocrWorker = null;
+var ocrWorkerLoading = null;
+var ocrCancelled = false;
+
+var OCR_STATUS_LABELS = {
+    'loading tesseract core': 'Loading OCR engine (first scan only — faster after this)...',
+    'initializing tesseract': 'Starting up the scanner...',
+    'loading language traineddata': 'Downloading language data (first scan only)...',
+    'initializing api': 'Almost ready...',
+    'recognizing text': 'Reading your screenshot...'
+};
+
+// Races a promise against a hard timeout so nothing — a stalled worker, a blocked WASM
+// compile, a dead CDN — can leave the UI stuck on a spinner forever with no way forward
+// besides the manual Cancel button.
+function withTimeout(promise, ms, timeoutMessage) {
+    return new Promise(function(resolve, reject) {
+        var timer = setTimeout(function() { reject(new Error(timeoutMessage)); }, ms);
+        promise.then(function(v) { clearTimeout(timer); resolve(v); }, function(e) { clearTimeout(timer); reject(e); });
+    });
+}
+function showOcrStatus(text) {
+    document.getElementById('pastePanel').classList.remove('show');
+    document.getElementById('ocrStatusText').textContent = text;
+    document.getElementById('ocrProgressFill').style.width = '0%';
+    document.getElementById('ocrStatusPanel').classList.add('show');
+}
+function hideOcrStatus() {
+    document.getElementById('ocrStatusPanel').classList.remove('show');
+}
+function ocrLogger(m) {
+    var label = OCR_STATUS_LABELS[m.status] || m.status;
+    if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+        var pct = Math.round(Math.min(Math.max(m.progress, 0), 1) * 100);
+        document.getElementById('ocrProgressFill').style.width = pct + '%';
+        document.getElementById('ocrStatusText').textContent = label + ' ' + pct + '%';
+    } else {
+        // Other phases (downloading the engine, loading language data) don't report a fraction —
+        // pulse the bar to roughly a third full so it's visibly alive rather than sitting at 0%.
+        document.getElementById('ocrProgressFill').style.width = '35%';
+        document.getElementById('ocrStatusText').textContent = label;
+    }
+}
+// Cancels the current scan. Terminates the worker outright rather than trying to interrupt it
+// mid-recognition (Tesseract.js doesn't support that) — a fresh worker is created next time.
+function cancelOcrScan() {
+    ocrCancelled = true;
+    hideOcrStatus();
+    if (ocrWorker) {
+        try { ocrWorker.terminate(); } catch (e) {}
+        ocrWorker = null;
+    }
+    ocrWorkerLoading = null;
+    toast('Scan cancelled.', 'info');
+}
+// Converts the image to high-contrast black-on-white before handing it to the OCR engine.
+// A raw photo of a printed document — uneven lighting, a visible background, faint ink — reads
+// far less accurately than a clean digital screenshot. This won't fix everything (a skewed
+// angle or heavy glare still hurts), but flattening it to pure black/white text typically
+// improves accuracy noticeably. Falls back to the original file if anything goes wrong.
+function preprocessImageForOcr(file) {
+    return new Promise(function(resolve) {
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function() {
+            try {
+                var MAX_DIM = 2200; // cap size for speed while keeping small table text legible
+                var scale = Math.min(1, MAX_DIM / Math.max(img.width, img.height));
+                var w = Math.round(img.width * scale);
+                var h = Math.round(img.height * scale);
+                var srcCanvas = document.createElement('canvas');
+                srcCanvas.width = w; srcCanvas.height = h;
+                var srcCtx = srcCanvas.getContext('2d');
+                srcCtx.drawImage(img, 0, 0, w, h);
+                var srcData = srcCtx.getImageData(0, 0, w, h).data;
+                var grays = new Uint8ClampedArray(w * h);
+                for (var i = 0, p = 0; i < srcData.length; i += 4, p++) {
+                    grays[p] = srcData[i] * 0.299 + srcData[i + 1] * 0.587 + srcData[i + 2] * 0.114;
+                }
+
+                // Trim solid-color borders (e.g. black letterboxing around a screenshot) before
+                // deciding whether the image is "dark" or "light" overall. Without this, a large
+                // uniform black bar can dominate that average and cause the WRONG polarity
+                // decision for the actual content sitting inside it — flipping a perfectly good
+                // light-background table into unreadable dark-on-dark, rather than the other way
+                // round. A row/column with almost no brightness variation is treated as blank
+                // padding, not real content.
+                var RANGE_THRESHOLD = 12;
+                function rowRange(y) {
+                    var min = 255, max = 0, base = y * w;
+                    for (var x = 0; x < w; x++) { var g = grays[base + x]; if (g < min) min = g; if (g > max) max = g; }
+                    return max - min;
+                }
+                function colRange(x) {
+                    var min = 255, max = 0;
+                    for (var y = 0; y < h; y++) { var g = grays[y * w + x]; if (g < min) min = g; if (g > max) max = g; }
+                    return max - min;
+                }
+                var top = 0, bottom = h - 1, left = 0, right = w - 1;
+                while (top < bottom && rowRange(top) < RANGE_THRESHOLD) top++;
+                while (bottom > top && rowRange(bottom) < RANGE_THRESHOLD) bottom--;
+                while (left < right && colRange(left) < RANGE_THRESHOLD) left++;
+                while (right > left && colRange(right) < RANGE_THRESHOLD) right--;
+                var pad = 4;
+                top = Math.max(0, top - pad); left = Math.max(0, left - pad);
+                bottom = Math.min(h - 1, bottom + pad); right = Math.min(w - 1, right + pad);
+                var cw = Math.max(1, right - left + 1);
+                var ch = Math.max(1, bottom - top + 1);
+
+                var canvas = document.createElement('canvas');
+                canvas.width = cw; canvas.height = ch;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(srcCanvas, left, top, cw, ch, 0, 0, cw, ch);
+                var imageData = ctx.getImageData(0, 0, cw, ch);
+                var data = imageData.data;
+
+                // Now compute brightness and decide light/dark using only the cropped content
+                // region — this is the fix. OCR engines expect dark text on a LIGHT background,
+                // so a predominantly dark image (e.g. a dark-mode app screenshot) gets inverted;
+                // an already-light image (e.g. a photographed page or a light-theme table) is
+                // left alone.
+                var total = 0;
+                var pixelCount = data.length / 4;
+                var cgrays = new Uint8ClampedArray(pixelCount);
+                for (var j = 0, q = 0; j < data.length; j += 4, q++) {
+                    var gray = data[j] * 0.299 + data[j + 1] * 0.587 + data[j + 2] * 0.114;
+                    cgrays[q] = gray;
+                    total += gray;
+                }
+                var avgBrightness = total / pixelCount;
+                var isDarkImage = avgBrightness < 128;
+
+                for (var k = 0, r = 0; k < data.length; k += 4, r++) {
+                    var isLightPixel = cgrays[r] > 150;
+                    var v;
+                    if (isDarkImage) {
+                        v = isLightPixel ? 0 : 255; // light text on dark bg -> flip to dark text on light bg
+                    } else {
+                        v = isLightPixel ? 255 : 0; // already light bg / dark text -> keep as-is
+                    }
+                    data[k] = data[k + 1] = data[k + 2] = v;
+                }
+                ctx.putImageData(imageData, 0, 0);
+                URL.revokeObjectURL(url);
+                canvas.toBlob(function(blob) { resolve(blob || file); }, 'image/png');
+            } catch (e) {
+                URL.revokeObjectURL(url);
+                resolve(file); // preprocessing failed — just OCR the original image instead
+            }
+        };
+        img.onerror = function() { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+    });
+}
+async function getOcrWorker() {
+    if (ocrWorker) return ocrWorker;
+    if (!ocrWorkerLoading) {
+        // Deliberately NOT passing workerPath/corePath/langPath — Tesseract.js's own docs warn
+        // against pinning a specific core file, since it skips the SIMD-optimized build the
+        // library would otherwise auto-select for the device, making things slower not faster.
+        // Leaving these unset lets it resolve everything from jsDelivr automatically, which is
+        // already permitted in the CSP above.
+        ocrWorkerLoading = Tesseract.createWorker('eng', 1, { logger: ocrLogger });
+    }
+    ocrWorker = await ocrWorkerLoading;
+    return ocrWorker;
+}
+async function handleOcrFileSelected(event) {
+    var file = event.target.files && event.target.files[0];
+    // Reset the input immediately so selecting the exact same file again still fires onchange.
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type || file.type.indexOf('image/') !== 0) {
+        toast('Please choose an image file (a screenshot or photo of your result).', 'warning');
+        return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+        toast('That image is quite large — try a smaller screenshot or crop it to just the results table.', 'warning', 6000);
+        return;
+    }
+    ocrCancelled = false;
+    showOcrStatus('Loading the scanner...');
+    try {
+        await ensureTesseract();
+    } catch (e) {
+        hideOcrStatus();
+        toast('Could not load the scanner — check your connection and try again, or use "Paste Grades Instead".', 'error', 6000);
+        return;
+    }
+    if (ocrCancelled) return;
+    // A gentle reassurance if the engine download is taking a while on a slower connection —
+    // doesn't cancel anything, just confirms it's still genuinely working, not frozen.
+    var slowConnectionNotice = setTimeout(function() {
+        if (!ocrCancelled) {
+            toast("Still working — this can take a bit longer on a slower connection. Feel free to keep waiting, or cancel and use \"Paste Grades Instead\".", 'info', 8000);
+        }
+    }, 20000);
+    try {
+        var worker = await withTimeout(getOcrWorker(), 45000, 'Starting the scanner is taking too long.');
+        if (ocrCancelled) { clearTimeout(slowConnectionNotice); return; }
+        showOcrStatus('Preparing the image...');
+        var processedImage = await preprocessImageForOcr(file);
+        if (ocrCancelled) { clearTimeout(slowConnectionNotice); return; }
+        // No forced page-segmentation mode here — Tesseract's default automatic layout
+        // detection generally handles a header band plus a genuinely multi-column table far
+        // better than forcing "assume one uniform block of text" (PSM 6), which was tried here
+        // initially and reliably caused the engine to read only the header line and drop the
+        // table body entirely, regardless of image quality or preprocessing.
+        showOcrStatus('Reading your screenshot...');
+        var result = await withTimeout(worker.recognize(processedImage), 60000, 'Reading the screenshot is taking too long.');
+        clearTimeout(slowConnectionNotice);
+        if (ocrCancelled) return;
+        hideOcrStatus();
+        var text = (result && result.data && result.data.text || '').trim();
+        if (!text) {
+            toast("Couldn't read any text from that image — try a clearer, well-lit screenshot, or use \"Paste Grades Instead\".", 'error', 7000);
+            return;
+        }
+        document.getElementById('pasteText').value = text;
+        document.getElementById('pastePanel').classList.add('show');
+        document.getElementById('pasteText').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        toast('Scanned! Double-check the text below before tapping "Fill Courses From Paste" — OCR isn\'t perfect.', 'info', 7000);
+    } catch (e) {
+        clearTimeout(slowConnectionNotice);
+        if (ocrCancelled) return;
+        hideOcrStatus();
+        var isTimeout = e && /taking too long/.test(e.message || '');
+        var msg = isTimeout
+            ? "The scanner is taking too long on this connection — try \"Paste Grades Instead\" for now."
+            : 'Something went wrong reading that image — try again, or use "Paste Grades Instead".';
+        toast(msg, 'error', 7000);
+        // The worker may be in a bad state after a failure or timeout — drop it so the next attempt starts fresh.
+        ocrWorker = null;
+        ocrWorkerLoading = null;
+    }
+}
+
+function calculateTarget() {
+    var currentCGPA = parseFloat(document.getElementById('currentCGPA').value);
+    var currentSem  = parseInt(document.getElementById('currentSem').value);
+    var target      = parseFloat(document.getElementById('targetGPA').value);
+    var totalSem    = parseInt(document.getElementById('totalSem').value);
+    var result      = document.getElementById('targetResult');
+    if (isNaN(currentCGPA)) { toast('Enter your current CGPA.', 'warning'); return; }
+    if (!currentSem) { toast('Enter your current semester.', 'warning'); return; }
+    if (!target)     { toast('Enter your target CGPA.', 'warning'); return; }
+    if (!totalSem)   { toast('Enter total semesters in your program.', 'warning'); return; }
+    if (target > 5)  { toast('Maximum CGPA is 5.0.', 'warning'); return; }
+    if (currentSem >= totalSem) { toast('Current semester must be less than total semesters.', 'warning'); return; }
+    var remaining = totalSem - currentSem;
+    var needed = ((target * totalSem) - (currentCGPA * currentSem)) / remaining;
+    var standing = getStanding(target);
+    result.classList.add('show');
+    if (needed > 5.0) {
+        var maxPossible = ((5.0 * remaining) + (currentCGPA * currentSem)) / totalSem;
+        result.style.borderLeftColor = '#ef4444';
+        result.innerHTML = '<strong style="color:#ef4444;">CGPA of ' + target + ' is Not Achievable</strong><br><p style="color:var(--text2);font-size:13px;margin-top:8px;">Max possible if you score 5.0 in all remaining semesters: <strong style="color:var(--accent);">' + maxPossible.toFixed(2) + '</strong></p>';
+    } else if (needed <= 0) {
+        result.style.borderLeftColor = '#22c55e';
+        result.innerHTML = '<strong style="color:#22c55e;">Already Achieved!</strong><br><span style="color:var(--text2);font-size:13px;">Your CGPA already meets your target. Graduate with <strong>' + standing + '</strong>!</span>';
+    } else {
+        result.style.borderLeftColor = 'var(--accent)';
+        result.innerHTML = '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">To graduate with <strong>' + standing + '</strong>, you need:</div><div style="font-size:36px;font-weight:700;color:var(--accent);">' + needed.toFixed(2) + ' GPA</div><div style="font-size:13px;color:var(--text2);">per semester for your remaining <strong>' + remaining + '</strong> semester(s)</div>';
+    }
+}
+
+function renderChart() {
+    var canvas = document.getElementById('gpaChart');
+    var msg    = document.getElementById('noChartMsg');
+    var included = getIncludedSemesters();
+    if (typeof Chart === 'undefined') {
+        // Chart.js hasn't loaded yet. If there's nothing to chart anyway, just show the empty
+        // state and skip the download entirely. Otherwise fetch it in the background, then
+        // re-run renderChart() once it's ready.
+        if (included.length < 2) {
+            msg.style.display = 'block'; canvas.style.display = 'none';
+            renderGpaProjection(included);
+            return;
+        }
+        ensureChartJs().then(renderChart).catch(function() {
+            toast('Could not load the chart library — check your connection and try again.', 'error');
+        });
+        return;
+    }
+    if (included.length < 2) {
+        msg.style.display = 'block'; canvas.style.display = 'none';
+        if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    } else {
+        msg.style.display = 'none'; canvas.style.display = 'block';
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var gc = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        var tc = isDark ? '#94a3b8' : '#475569';
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(canvas, {
+            type: 'line',
+            data: { labels: included.map(function(s) { return s.name; }), datasets: [{ data: included.map(function(s) { return s.gpa; }), borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointBackgroundColor: included.map(function(s) { return s.gpa >= 4.5 ? '#22c55e' : s.gpa >= 3.5 ? '#38bdf8' : s.gpa >= 2.5 ? '#f59e0b' : '#ef4444'; }), pointRadius: 6, pointHoverRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5, grid: { color: gc }, ticks: { color: tc, stepSize: 1 } }, x: { grid: { color: gc }, ticks: { color: tc } } }, plugins: { legend: { display: false } } }
+        });
+    }
+    renderGpaProjection(included);
+}
+
+// Projects where the student's CGPA is headed if they finish their program at their recent
+// pace — a forward-looking number to sit alongside the backward-looking trend chart. Needs
+// "Total Semesters in Your Program" set in Profile; without it, shows a gentle prompt instead
+// of guessing (a wrong assumed program length would be actively misleading).
+function renderGpaProjection(included) {
+    var box = document.getElementById('gpaProjection');
+    if (!box) return;
+    if (!included.length) { box.innerHTML = ''; return; }
+    var totalSemesters = profile && profile.totalSemesters;
+    if (!totalSemesters) {
+        box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>Set <strong>"Total Semesters in Your Program"</strong> in your Profile to see a projected graduation CGPA here.</div>';
+        return;
+    }
+    var currentCGPA = parseFloat(calculateCGPA());
+    var completed = included.length;
+    var remaining = totalSemesters - completed;
+    if (remaining <= 0) {
+        box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i>You\'ve reached your program\'s total semester count — <strong class="big">' + currentCGPA.toFixed(2) + '</strong> is your final CGPA.</div>';
+        return;
+    }
+    // "Recent pace" = average GPA of the last up to 3 semesters — more predictive of where
+    // things are headed than an all-time average that includes early, possibly rougher terms.
+    var recentSlice = included.slice(Math.max(0, included.length - 3));
+    var recentPaceGPA = recentSlice.reduce(function(a, s) { return a + s.gpa; }, 0) / recentSlice.length;
+    var pts = GRADE_POINTS();
+    var tpSoFar = 0, tuSoFar = 0;
+    included.forEach(function(s) { s.courses.forEach(function(c) { if (c.excluded) return; tpSoFar += (pts[c.grade] || 0) * c.units; tuSoFar += c.units; }); });
+    var avgUnitsPerSemester = tuSoFar / completed;
+    var estRemainingUnits = avgUnitsPerSemester * remaining;
+    var estRemainingPoints = recentPaceGPA * estRemainingUnits;
+    var projectedCGPA = (tpSoFar + estRemainingPoints) / (tuSoFar + estRemainingUnits);
+    var standing = getStanding(projectedCGPA);
+    var diff = projectedCGPA - currentCGPA;
+    var trendWord = diff > 0.03 ? 'rising' : (diff < -0.03 ? 'dipping' : 'steady');
+    box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>At your pace over the last ' + recentSlice.length + ' semester(s), you\'re on track to graduate with a CGPA around <strong class="big">' + projectedCGPA.toFixed(2) + '</strong> — <strong>' + standing + '</strong>.<div class="proj-sub">Based on ' + completed + ' of ' + totalSemesters + ' semesters completed, trend currently ' + trendWord + '. This is an estimate, not a guarantee — keep it updated each semester.</div></div>';
+}
+
+var currentWeakList = []; // tracked at render time so "Simulate All Together" can read every course's picked grade
+
+// ---- Your Targets: built-in classification milestones + custom scholarship/internship goals ----
+
+// Renders the two free, automatic classification milestones (Second Class Upper, First Class)
+// — only showing whichever one is still ahead, so a student who's already hit 2:1 just sees
+// their remaining distance to First Class, not a stale "already passed" milestone.
+function renderBuiltInTargets(cgpa) {
+    var box = document.getElementById('builtInTargets');
+    if (!box) return;
+    var milestones = [
+        { label: 'Second Class Upper', target: 3.5 },
+        { label: 'First Class', target: 4.5 }
+    ];
+    var next = milestones.find(function(m) { return cgpa < m.target; });
+    if (!next) {
+        box.innerHTML = '<div class="goal-item"><div class="goal-header"><div class="goal-label"><i class="fa-solid fa-trophy" style="color:var(--green);"></i> First Class</div><div class="goal-status achieved">Achieved!</div></div><div class="goal-sub"><span>You\'ve already reached the top classification band.</span></div></div>';
+        return;
+    }
+    var gap = next.target - cgpa;
+    var pct = Math.min((cgpa / next.target) * 100, 100);
+    box.innerHTML = '<div class="goal-item"><div class="goal-header"><div class="goal-label"><i class="fa-solid fa-graduation-cap"></i> ' + next.label + '</div><div class="goal-status pending">' + gap.toFixed(2) + ' to go</div></div><div class="goal-mini-track"><div class="goal-mini-fill" style="width:' + pct + '%"></div></div><div class="goal-sub"><span>Current ' + cgpa.toFixed(2) + '</span><span>Target ' + next.target.toFixed(2) + '</span></div></div>';
+}
+
+function renderCustomGoals(cgpa) {
+    var list = document.getElementById('customGoalsList');
+    if (!list) return;
+    if (!goals.length) { list.innerHTML = ''; return; }
+    list.innerHTML = goals.map(function(g) {
+        var achieved = cgpa >= g.targetCgpa;
+        var gap = g.targetCgpa - cgpa;
+        var pct = Math.min((cgpa / g.targetCgpa) * 100, 100);
+        return '<div class="goal-item"><div class="goal-header"><div class="goal-label"><i class="fa-solid fa-flag"></i> ' + escapeHtml(g.label) + '</div><div class="goal-status ' + (achieved ? 'achieved' : 'pending') + '">' + (achieved ? 'Achieved!' : gap.toFixed(2) + ' to go') + '</div></div><div class="goal-mini-track"><div class="goal-mini-fill" style="width:' + pct + '%"></div></div><div class="goal-sub"><span>Current ' + cgpa.toFixed(2) + '</span><span>Target ' + g.targetCgpa.toFixed(2) + '</span><button class="goal-delete" type="button" onclick="deleteGoal(\'' + g.id + '\')" aria-label="Remove this target"><i class="fa-solid fa-trash"></i></button></div></div>';
+    }).join('');
+}
+
+function renderGoals(cgpa) {
+    renderBuiltInTargets(cgpa);
+    renderCustomGoals(cgpa);
+}
+
+// ---- Peer Comparison (opt-in, anonymous, aggregate-only) ----
+//
+// Privacy design, spelled out because it matters: this NEVER queries other students' rows
+// directly — RLS wouldn't even allow that, by design. Instead it calls a database function
+// (get_peer_percentile) that runs with elevated privileges internally to compute an aggregate,
+// but only ever returns a percentile + group size + average — never any individual's data.
+// The function itself refuses to return a real percentile for groups smaller than 5, so nobody
+// could work out a specific classmate's CGPA by watching a tiny group's number shift around.
+// Only students who've explicitly opted in are included in the group at all, in either direction.
+
+// Pushes the student's current CGPA to Supabase ONLY if they've opted in (and scrubs it
+// immediately if they opt out), then refreshes what's shown. Called after anything that could
+// change CGPA: saving/editing/deleting a semester, or toggling the opt-in itself.
+async function syncPeerCgpaIfOptedIn() {
+    if (!currentUser || !isOnline) return;
+    try {
+        if (profile && profile.participatePeerStats) {
+            var cgpa = parseFloat(calculateCGPA());
+            await sb.from('profiles').update({ current_cgpa: isNaN(cgpa) ? null : cgpa }).eq('id', currentUser.id);
+        } else {
+            await sb.from('profiles').update({ current_cgpa: null }).eq('id', currentUser.id);
+        }
+    } catch (e) { /* best-effort — a failed sync here just delays peer stats slightly, no data is at risk */ }
+    fetchAndRenderPeerComparison();
+}
+
+async function fetchAndRenderPeerComparison() {
+    var card = document.getElementById('peerCard');
+    var content = document.getElementById('peerContent');
+    if (!card || !content) return;
+    card.style.display = 'block';
+    if (!profile || !profile.participatePeerStats) {
+        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-users" style="color:var(--accent);"></i><span>Curious how you compare to other students at your university? <a onclick="switchTab(\'profile\')">Opt in anonymously in your Profile</a> — nobody, including us, can see your individual CGPA through this.</span></div>';        return;
+    }
+    if (!isOnline) { content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-wifi" style="color:var(--gold);"></i><span>Peer comparison needs an internet connection — reconnect to see your standing.</span></div>'; return; }
+    content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-spinner fa-spin"></i><span>Checking your standing...</span></div>';
+    try {
+        var res = await sb.rpc('get_peer_percentile');
+        if (res.error) throw res.error;
+        var row = res.data && res.data[0];
+        if (!row || !row.eligible) {
+            content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-circle-info" style="color:var(--text3);"></i><span>Set your university and level in Profile, and log at least one semester, to see your peer standing.</span></div>';
+            return;
+        }
+        if (row.percentile === null) {
+            content.innerHTML = '<div class="peer-teaser" style="flex-direction:column;align-items:flex-start;"><div style="display:flex;gap:12px;align-items:center;"><i class="fa-solid fa-seedling" style="color:var(--green);"></i><span>Not enough students at your university &amp; level have opted in yet (needs at least 5 — currently <strong>' + row.group_size + '</strong>). Invite classmates to unlock it faster!</span></div><button type="button" class="btn btn-secondary" style="margin-top:10px;width:auto;padding:8px 16px;" onclick="copyReferralLink()"><i class="fa-solid fa-link"></i> Copy Invite Link</button></div>';
+            return;
+        }
+        var topPct = Math.max(1, Math.round(100 - row.percentile));
+        content.innerHTML = '<div class="peer-result"><div class="peer-percentile">Top ' + topPct + '%</div><div class="peer-sub">You\'re doing better than <strong>' + Math.round(row.percentile) + '%</strong> of ' + escapeHtml(profile.level || 'your level') + ' students at ' + escapeHtml(profile.uni || 'your university') + ' using GradeGuard, based on <strong>' + row.group_size + '</strong> opted-in students (average CGPA ' + parseFloat(row.avg_cgpa).toFixed(2) + ').</div></div>';
+    } catch (e) {
+        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-circle-info" style="color:var(--text3);"></i><span>Peer comparison isn\'t available right now — it may still need a one-time setup step. Check back soon.</span></div>';
+    }
+}
+
+// Custom goals are kept simple and online-only (no offline queue) since they're occasional,
+// low-frequency additions — unlike grades, there's little cost in asking for a connection here.
+async function addGoal() {
+    var labelInput = document.getElementById('newGoalLabel');
+    var targetInput = document.getElementById('newGoalCGPA');
+    var label = labelInput.value.trim();
+    var target = parseFloat(targetInput.value);
+    if (!label) { toast('Give your target a name, e.g. "Scholarship Cutoff" or "NYSC Posting Preference".', 'warning'); return; }
+    if (isNaN(target) || target <= 0 || target > 5) { toast('Enter a target CGPA between 0 and 5.', 'warning'); return; }
+    if (!isOnline) { toast("You'll need to be online to add a target — please reconnect and try again.", 'warning', 6000); return; }
+    try {
+        var res = await sb.from('goals').insert({ user_id: currentUser.id, label: label, target_cgpa: target }).select().single();
+        if (res.error) throw res.error;
+        goals.push({ id: res.data.id, label: label, targetCgpa: target });
+        saveLocalCache();
+        labelInput.value = ''; targetInput.value = '';
+        renderAll();
+        toast('Target added!', 'success');
+    } catch (e) {
+        toast("Couldn't save that target — it may need a one-time setup step still. Try again shortly.", 'error', 6000);
+    }
+}
+
+async function deleteGoal(id) {
+    if (!isOnline) { toast("You'll need to be online to remove a target — please reconnect and try again.", 'warning', 6000); return; }
+    try {
+        var res = await sb.from('goals').delete().eq('id', id);
+        if (res.error) throw res.error;
+        goals = goals.filter(function(g) { return g.id !== id; });
+        saveLocalCache();
+        renderAll();
+        toast('Target removed.', 'info');
+    } catch (e) {
+        toast("Couldn't remove that target — check your connection and try again.", 'error', 6000);
+    }
+}
+
+function renderWeakCourses() {
+    var container = document.getElementById('weakCoursesList');
+    var pts = GRADE_POINTS();
+    var weak = [];
+    getIncludedSemesters().forEach(function(s) {
+        s.courses.forEach(function(c, idx) {
+            if ((c.grade === 'E' || c.grade === 'F') && !c.excluded) {
+                weak.push({ semId: s.id, courseIdx: idx, name: c.name, grade: c.grade, units: c.units, semester: s.name });
+            }
+        });
+    });
+    currentWeakList = weak;
+    if (!weak.length) { container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green);opacity:1;"></i>No weak courses!<br>All courses are passing.</div>'; return; }
+    var itemsHtml = weak.map(function(c) {
+        var uid = (c.semId + '_' + c.courseIdx).replace(/[^a-zA-Z0-9_]/g, '');
+        var gradeOpts = ALL_GRADES.filter(function(g) { return g !== c.grade; }).map(function(g) { return '<option value="' + g + '">' + g + '</option>'; }).join('');
+        return '<div class="weak-item"><div><div class="weak-item-name">' + escapeHtml(c.name) + '</div><div class="weak-item-info">' + escapeHtml(c.semester) + ' &bull; ' + c.units + ' units</div></div><div style="text-align:right;"><div class="grade-badge ' + GRADE_CLASS[c.grade] + '" style="width:auto;padding:4px 10px;margin-bottom:4px;">Grade ' + c.grade + '</div><div style="font-size:11px;color:var(--text3);">' + (pts[c.grade]||0) + ' pts</div></div></div>' +
+            '<div class="whatif-row"><span class="whatif-label">What if I retake and score:</span><select id="whatifGrade_' + uid + '">' + gradeOpts + '</select><button type="button" class="whatif-btn" onclick="simulateResit(\'' + c.semId + '\', ' + c.courseIdx + ', \'' + uid + '\')">Simulate</button></div>' +
+            '<div class="whatif-result" id="whatifResult_' + uid + '"></div>';
+    }).join('');
+    var combinedHtml = weak.length > 1 ? (
+        '<div class="whatif-all-row">' +
+            '<span class="whatif-label">Quickly set every course above to:</span>' +
+            '<select id="whatifAllGrade">' + ALL_GRADES.map(function(g) { return '<option value="' + g + '">' + g + '</option>'; }).join('') + '</select>' +
+            '<button type="button" class="whatif-btn" onclick="applyGradeToAllWeak()">Apply to All</button>' +
+            '<button type="button" class="whatif-btn whatif-btn-purple" onclick="simulateAllWeak()"><i class="fa-solid fa-layer-group"></i> Simulate All Together</button>' +
+        '</div>' +
+        '<div class="whatif-result" id="whatifAllResult"></div>'
+    ) : '';
+    container.innerHTML = itemsHtml + combinedHtml;
+}
+
+// Sets every weak course's dropdown to the same hypothetical grade in one tap, so the person
+// doesn't have to click through each one individually before running "Simulate All Together".
+function applyGradeToAllWeak() {
+    var masterSelect = document.getElementById('whatifAllGrade');
+    var grade = masterSelect ? masterSelect.value : '';
+    if (!grade) return;
+    currentWeakList.forEach(function(c) {
+        var uid = (c.semId + '_' + c.courseIdx).replace(/[^a-zA-Z0-9_]/g, '');
+        var sel = document.getElementById('whatifGrade_' + uid);
+        if (!sel) return;
+        var hasOption = Array.prototype.some.call(sel.options, function(o) { return o.value === grade; });
+        if (hasOption) sel.value = grade;
+    });
+    toast('Set every weak course above to ' + grade + '. Tap "Simulate All Together" to see the combined effect.', 'info');
+}
+
+// Combined what-if: computes the CGPA impact of retaking EVERY weak course at once, each at
+// whatever grade is currently picked in its own dropdown — a scenario like "what if I passed
+// all my failed courses this time around", not just one at a time.
+function simulateAllWeak() {
+    if (!currentWeakList.length) return;
+    var pts = GRADE_POINTS();
+    var substitutions = {};
+    currentWeakList.forEach(function(c) {
+        var uid = (c.semId + '_' + c.courseIdx).replace(/[^a-zA-Z0-9_]/g, '');
+        var sel = document.getElementById('whatifGrade_' + uid);
+        substitutions[c.semId + '|' + c.courseIdx] = sel ? sel.value : c.grade;
+    });
+    var tp = 0, tu = 0;
+    getIncludedSemesters().forEach(function(s) {
+        s.courses.forEach(function(c, idx) {
+            if (c.excluded) return;
+            var key = s.id + '|' + idx;
+            var grade = substitutions.hasOwnProperty(key) ? substitutions[key] : c.grade;
+            tp += (pts[grade] || 0) * c.units;
+            tu += c.units;
+        });
+    });
+    var hypotheticalCGPA = tu > 0 ? (tp / tu) : 0;
+    var currentCGPA = parseFloat(calculateCGPA());
+    var diff = hypotheticalCGPA - currentCGPA;
+    var arrowIcon = diff > 0 ? '<i class="fa-solid fa-arrow-up" style="color:var(--green);"></i>' : (diff < 0 ? '<i class="fa-solid fa-arrow-down" style="color:var(--red);"></i>' : '<i class="fa-solid fa-minus" style="color:var(--text3);"></i>');
+    var diffText = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+    var breakdown = currentWeakList.map(function(c) {
+        return escapeHtml(c.name) + ' &rarr; ' + substitutions[c.semId + '|' + c.courseIdx];
+    }).join(', ');
+    var resultEl = document.getElementById('whatifAllResult');
+    if (resultEl) {
+        resultEl.innerHTML = 'Retake all <strong>' + currentWeakList.length + ' weak course(s)</strong> (' + breakdown + ') and your CGPA moves from <strong>' + currentCGPA.toFixed(2) + '</strong> to <strong style="color:var(--accent);">' + hypotheticalCGPA.toFixed(2) + '</strong> ' + arrowIcon + ' <span style="color:' + (diff >= 0 ? 'var(--green)' : 'var(--red)') + ';">(' + diffText + ')</span>';
+        resultEl.classList.add('show');
+    }
+}
+
+// Shows the exact CGPA impact of hypothetically re-scoring one weak course — a "what if I
+// retake this" preview. This does NOT save anything or touch real data; it's a pure preview
+// computed the same way calculateCGPA() works, just substituting one course's grade in memory.
+function simulateResit(semId, courseIdx, uid) {
+    var select = document.getElementById('whatifGrade_' + uid);
+    var resultEl = document.getElementById('whatifResult_' + uid);
+    var newGrade = select ? select.value : '';
+    if (!newGrade) { toast('Pick a hypothetical grade first.', 'warning'); return; }
+    var pts = GRADE_POINTS();
+    var tp = 0, tu = 0;
+    getIncludedSemesters().forEach(function(s) {
+        s.courses.forEach(function(c, idx) {
+            if (c.excluded) return;
+            var grade = (s.id === semId && idx === courseIdx) ? newGrade : c.grade;
+            tp += (pts[grade] || 0) * c.units;
+            tu += c.units;
+        });
+    });
+    var hypotheticalCGPA = tu > 0 ? (tp / tu) : 0;
+    var currentCGPA = parseFloat(calculateCGPA());
+    var diff = hypotheticalCGPA - currentCGPA;
+    var arrowIcon = diff > 0 ? '<i class="fa-solid fa-arrow-up" style="color:var(--green);"></i>' : (diff < 0 ? '<i class="fa-solid fa-arrow-down" style="color:var(--red);"></i>' : '<i class="fa-solid fa-minus" style="color:var(--text3);"></i>');
+    var diffText = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+    if (resultEl) {
+        resultEl.innerHTML = 'Score a <strong>' + newGrade + '</strong> and your CGPA moves from <strong>' + currentCGPA.toFixed(2) + '</strong> to <strong style="color:var(--accent);">' + hypotheticalCGPA.toFixed(2) + '</strong> ' + arrowIcon + ' <span style="color:' + (diff >= 0 ? 'var(--green)' : 'var(--red)') + ';">(' + diffText + ')</span>';
+        resultEl.classList.add('show');
+    }
+}
+
+function renderAll() {
+    var included = getIncludedSemesters();
+    var cgpa = parseFloat(calculateCGPA());
+    renderGoals(cgpa);
+    var best = included.length ? Math.max.apply(null, included.map(function(s) { return s.gpa; })).toFixed(2) : '—';
+    var tc   = included.reduce(function(a, s) { return a + s.courses.length; }, 0);
+    var cgpaColor = getGPAColor(cgpa);
+    document.getElementById('cgpaDisplay').innerHTML       = included.length ? ('<i class="fa-solid ' + getStandingIcon(cgpa) + '" aria-hidden="true"></i>' + cgpa.toFixed(2)) : '—';
+    document.getElementById('cgpaDisplay').className         = 'value ' + cgpaColor;
+    document.getElementById('cgpaDisplay').setAttribute('aria-label', included.length ? ('CGPA ' + cgpa.toFixed(2) + ', ' + getStanding(cgpa)) : 'No CGPA yet');
+    document.getElementById('semesterCount').textContent     = semesters.length;
+    document.getElementById('bestGPA').textContent           = best;
+    document.getElementById('totalCoursesCount').textContent = tc;
+    var pct = included.length ? Math.min((cgpa / 5) * 100, 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    var standing = included.length ? getStanding(cgpa) : null;
+    document.getElementById('standingBadge').innerHTML = (standing && included.length) ? '<i class="fa-solid fa-circle-dot" style="color:var(--accent);margin-right:6px;"></i>Current Standing: <strong style="color:var(--accent);">' + standing + '</strong> &nbsp;&bull;&nbsp; CGPA: <strong>' + cgpa.toFixed(2) + '</strong>' : '<i class="fa-solid fa-circle-info" style="margin-right:6px;opacity:0.5;"></i>Add semesters to see your standing';
+    var banner = document.getElementById('riskBanner');
+    if (included.length) {
+        if (cgpa < 1.0) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-circle-radiation" style="flex-shrink:0;"></i><span><strong>Danger Zone:</strong> CGPA critically low.</span>'; }
+        else if (cgpa < 1.5) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i><span><strong>Warning:</strong> CGPA is below average.</span>'; }
+        else if (cgpa < 2.5) { banner.className = 'risk-banner show'; banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i><span><strong>Below Average:</strong> Focus on weak courses.</span>'; }
+        else if (cgpa >= 4.5) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-trophy" style="flex-shrink:0;color:var(--green);"></i><span><strong>Excellent!</strong> First Class standing!</span>'; }
+        else if (cgpa >= 3.5) { banner.className = 'risk-banner show good'; banner.innerHTML = '<i class="fa-solid fa-circle-check" style="flex-shrink:0;color:var(--green);"></i><span><strong>Good Standing:</strong> Second Class Upper. Push for First Class!</span>'; }
+        else { banner.className = 'risk-banner'; }
+    } else { banner.className = 'risk-banner'; }
+    renderChart();
+    renderWeakCourses();
+    updateWelcomeBanner();
+    renderReengagementNudge();
+    var list = document.getElementById('historyList');
+    if (!semesters.length) { list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-folder-open"></i>No semesters yet.<br>Go to Add Semester to get started!</div>'; return; }
+    var levelOpts = ['', '100L', '200L', '300L', '400L', '500L', '600L'];
+    list.innerHTML = semesters.map(function(s) {
+        var gc = getGPAColor(s.gpa); var sl = getStanding(s.gpa);
+        var tu = s.courses.reduce(function(a, c) { return a + (c.excluded ? 0 : c.units); }, 0);
+        var rows = s.courses.map(function(c) {
+            var isWeak = c.grade === 'E' || c.grade === 'F';
+            var badges = (c.resit ? '<span class="resit-chip"><i class="fa-solid fa-rotate-left"></i> resit</span>' : '') + (c.excluded ? '<span class="resit-chip" style="color:var(--text3);background:var(--bg3);"><i class="fa-solid fa-eye-slash"></i> excluded from CGPA</span>' : '');
+            return '<tr class="edit-row' + (isWeak ? ' weak-course' : '') + '"><td><input class="edit-name" value="' + escapeHtml(c.name) + '">' + (isWeak ? '<div class="weak-label">Dragging GPA</div>' : '') + badges + '</td><td><input class="edit-units" type="number" min="1" max="6" value="' + c.units + '" style="width:55px;"></td><td><select class="edit-grade">' + gradeOptions(c.grade) + '</select></td><td><label class="resit-check" title="Resit of an earlier failed attempt"><input type="checkbox" class="edit-resit"' + (c.resit ? ' checked' : '') + '><i class="fa-solid fa-rotate-left"></i></label></td><td><button class="btn-remove" type="button" onclick="removeEditRow(this)" aria-label="Remove this course"><i class="fa-solid fa-xmark"></i></button></td></tr>';
+        }).join('');
+        var sid = s.id;
+        var levelSelectHtml = '<select class="edit-level" onclick="event.stopPropagation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;padding:2px 6px;margin-top:3px;">' + levelOpts.map(function(l){ return '<option' + (s.level===l?' selected':'') + '>' + (l||'No level set') + '</option>'; }).join('') + '</select>';
+        return '<div class="semester-card" id="semCard-' + sid + '"><div class="semester-card-header" onclick="toggleSemester(\'' + sid + '\')"><div><input class="sem-name-input" value="' + escapeHtml(s.name) + '" onclick="event.stopPropagation()"><div class="sem-info">' + s.courses.length + ' courses — tap to expand &amp; edit</div>' + levelSelectHtml + '</div><div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;"><div class="sem-gpa ' + gc + '"><i class="fa-solid ' + getStandingIcon(s.gpa) + '" aria-hidden="true"></i>' + s.gpa + '</div><div class="sem-info">GPA</div></div><i class="fa-solid fa-chevron-down expand-icon" aria-hidden="true"></i></div></div><div class="semester-breakdown"><table class="breakdown-table"><thead><tr><th>Course</th><th>Units</th><th>Grade</th><th title="Resit">Resit</th><th></th></tr></thead><tbody>' + rows + '</tbody></table><div class="breakdown-stats"><div><div class="bs-label">Total Units</div><div class="bs-val">' + tu + '</div></div><div><div class="bs-label">Semester GPA</div><div class="bs-val ' + gc + '">' + s.gpa + '</div></div><div><div class="bs-label">Standing</div><div class="bs-val">' + sl + '</div></div></div><button class="btn btn-secondary" type="button" onclick="addEditRow(this)" style="margin-top:0;margin-bottom:10px;"><i class="fa-solid fa-plus"></i> Add Course</button><div class="breakdown-actions"><button class="btn btn-warning" onclick="updateSemester(\'' + sid + '\', this)"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button><button class="btn btn-danger" onclick="openDeleteModal(\'' + sid + '\')" aria-label="Delete this semester"><i class="fa-solid fa-trash"></i> Delete</button></div></div></div>';
+    }).join('');
+}
+
+function addEditRow(btn) {
+    var tbody = btn.closest('.semester-breakdown').querySelector('tbody');
+    var tr = document.createElement('tr');
+    tr.className = 'edit-row';
+    tr.innerHTML = '<td><input class="edit-name" placeholder="Course name" value=""></td><td><input class="edit-units" type="number" min="1" max="6" value="3" style="width:55px;"></td><td><select class="edit-grade">' + gradeOptions('') + '</select></td><td><label class="resit-check" title="Resit"><input type="checkbox" class="edit-resit"><i class="fa-solid fa-rotate-left"></i></label></td><td><button class="btn-remove" type="button" onclick="removeEditRow(this)" aria-label="Remove this course"><i class="fa-solid fa-xmark"></i></button></td>';
+    tbody.appendChild(tr);
+}
+
+// Populate the grading reference on first load (calculator tab may not be active yet, but this
+// keeps it correct the moment someone lands there without needing a tab switch first).
+renderGradingReference();
+</script>
+</body>
+</html>
