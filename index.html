@@ -1953,11 +1953,9 @@ function preprocessImageForOcr(file) {
                 var imageData = ctx.getImageData(0, 0, cw, ch);
                 var data = imageData.data;
 
-                // Now compute brightness and decide light/dark using only the cropped content
-                // region — this is the fix. OCR engines expect dark text on a LIGHT background,
-                // so a predominantly dark image (e.g. a dark-mode app screenshot) gets inverted;
-                // an already-light image (e.g. a photographed page or a light-theme table) is
-                // left alone.
+                // Compute brightness using only the cropped content region, to decide whether
+                // this is a dark-mode image (e.g. a dark-theme app screenshot) that needs
+                // flipping so text ends up dark-on-light, which is what OCR engines expect.
                 var total = 0;
                 var pixelCount = data.length / 4;
                 var cgrays = new Uint8ClampedArray(pixelCount);
@@ -1969,14 +1967,18 @@ function preprocessImageForOcr(file) {
                 var avgBrightness = total / pixelCount;
                 var isDarkImage = avgBrightness < 128;
 
+                // Deliberately NOT forcing a hard black/white cutoff here. An earlier version of
+                // this code did that, and it actively erased genuine table text: body-row text
+                // is often a lighter/medium gray rather than pure black, and a single fixed
+                // threshold for the whole image can flatten that lighter text into the
+                // background — making it vanish entirely rather than just reading a bit rough.
+                // Tesseract has its own adaptive binarization built specifically to handle a
+                // range of text darkness levels; the only correction it genuinely needs from us
+                // is orientation (light-on-dark needs flipping to dark-on-light). Everything
+                // else is left as full grayscale so no real text gets destroyed before OCR even
+                // sees it.
                 for (var k = 0, r = 0; k < data.length; k += 4, r++) {
-                    var isLightPixel = cgrays[r] > 150;
-                    var v;
-                    if (isDarkImage) {
-                        v = isLightPixel ? 0 : 255; // light text on dark bg -> flip to dark text on light bg
-                    } else {
-                        v = isLightPixel ? 255 : 0; // already light bg / dark text -> keep as-is
-                    }
+                    var v = isDarkImage ? (255 - cgrays[r]) : cgrays[r];
                     data[k] = data[k + 1] = data[k + 2] = v;
                 }
                 ctx.putImageData(imageData, 0, 0);
