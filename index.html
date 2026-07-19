@@ -2040,11 +2040,12 @@ async function handleOcrFileSelected(event) {
         showOcrStatus('Preparing the image...');
         var processedImage = await preprocessImageForOcr(file);
         if (ocrCancelled) { clearTimeout(slowConnectionNotice); return; }
-        // No forced page-segmentation mode here — Tesseract's default automatic layout
-        // detection generally handles a header band plus a genuinely multi-column table far
-        // better than forcing "assume one uniform block of text" (PSM 6), which was tried here
-        // initially and reliably caused the engine to read only the header line and drop the
-        // table body entirely, regardless of image quality or preprocessing.
+        // PSM 11 ("sparse text") skips Tesseract's normal page-layout analysis entirely and just
+        // grabs any recognizable text fragments anywhere in the image, in any order. This is the
+        // standard recommendation for grids/forms/bordered tables — plain automatic layout mode
+        // (tried previously) consistently misread the table's grid lines as a non-text graphic
+        // element and discarded the entire body, keeping only the borderless header banner.
+        try { await worker.setParameters({ tessedit_pageseg_mode: '11' }); } catch (e) { /* non-fatal — falls back to default mode */ }
         showOcrStatus('Reading your screenshot...');
         var result = await withTimeout(worker.recognize(processedImage), 60000, 'Reading the screenshot is taking too long.');
         clearTimeout(slowConnectionNotice);
