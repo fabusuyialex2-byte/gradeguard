@@ -1910,13 +1910,20 @@ function preprocessImageForOcr(file) {
         var url = URL.createObjectURL(file);
         img.onload = function() {
             try {
-                var MAX_DIM = 2200; // cap size for speed while keeping small table text legible
-                var scale = Math.min(1, MAX_DIM / Math.max(img.width, img.height));
+                var TARGET_DIM = 2200; // scale the longer side TOWARD this — both shrinking oversized
+                // photos AND enlarging small screenshots. This matters: Tesseract needs text
+                // roughly 20+ pixels tall to read reliably. A small source screenshot can have
+                // body-row text well under that height even though it looks fine to a human eye —
+                // enlarging it before OCR gives the engine actual pixels to work with. Capped at
+                // 4x so a tiny/thumbnail-sized image doesn't get blown up into a blurry mess.
+                var scale = Math.min(4, TARGET_DIM / Math.max(img.width, img.height));
                 var w = Math.round(img.width * scale);
                 var h = Math.round(img.height * scale);
                 var srcCanvas = document.createElement('canvas');
                 srcCanvas.width = w; srcCanvas.height = h;
                 var srcCtx = srcCanvas.getContext('2d');
+                srcCtx.imageSmoothingEnabled = true;
+                srcCtx.imageSmoothingQuality = 'high';
                 srcCtx.drawImage(img, 0, 0, w, h);
                 var srcData = srcCtx.getImageData(0, 0, w, h).data;
                 var grays = new Uint8ClampedArray(w * h);
