@@ -2064,12 +2064,11 @@ async function handleOcrFileSelected(event) {
             debugImg.src = debugUrl;
             document.getElementById('ocrDebugPanel').classList.add('show');
         } catch (e) { /* debug display failing should never block the actual scan */ }
-        // PSM 11 ("sparse text") skips Tesseract's normal page-layout analysis entirely and just
-        // grabs any recognizable text fragments anywhere in the image, in any order. This is the
-        // standard recommendation for grids/forms/bordered tables — plain automatic layout mode
-        // (tried previously) consistently misread the table's grid lines as a non-text graphic
-        // element and discarded the entire body, keeping only the borderless header banner.
-        try { await worker.setParameters({ tessedit_pageseg_mode: '11' }); } catch (e) { /* non-fatal — falls back to default mode */ }
+        // No forced page-segmentation mode — sparse text (PSM 11) was tried here and, once the
+        // image itself was confirmed clean and correctly sized via the debug preview, produced
+        // worse results than Tesseract's own default automatic layout mode, not better. Letting
+        // it fall back to default lets the engine's own layout analysis do its job on a properly
+        // prepared image, which hadn't actually been tested in combination until now.
         showOcrStatus('Reading your screenshot...');
         var result = await withTimeout(worker.recognize(processedImage), 60000, 'Reading the screenshot is taking too long.');
         clearTimeout(slowConnectionNotice);
