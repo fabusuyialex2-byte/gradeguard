@@ -333,16 +333,16 @@
     <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 </div>
 
-<!-- LANDING / PITCH SCREEN — shown once, before auth, on a person's very first visit -->
+<!-- LANDING / PITCH SCREEN, shown once, before auth, on a person's very first visit -->
 <div id="landing-screen" style="display:none;position:fixed;inset:0;z-index:250;background:linear-gradient(135deg,#0a1020 0%,#0f172a 50%,#0a1628 100%);overflow-y:auto;">
     <div style="max-width:480px;margin:0 auto;padding:60px 24px 40px;text-align:center;">
         <div style="width:64px;height:64px;background:linear-gradient(135deg,#0284c7,#0f766e);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;color:white;margin:0 auto 20px;"><i class="fa-solid fa-shield-halved"></i></div>
         <h1 style="color:#e2e8f0;font-size:26px;margin-bottom:10px;">GradeGuard</h1>
-        <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:28px;">Built for Nigerian university grading — the 5.0 scale, resits, 100L exclusion rules, and real unit-weighted CGPA math done right. Track every semester, see exactly what you need to hit First Class, and know where you stand.</p>
+        <p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:28px;">Welcome to GradeGuard. Enter your grades after each semester, and it works out your CGPA for you, automatically, using the same 5.0 scale your Nigerian university uses. No more doing the maths by hand or guessing where you stand.</p>
         <div style="text-align:left;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px 20px;margin-bottom:28px;">
-            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-calculator" style="color:#38bdf8;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Accurate unit-weighted CGPA, built for the Nigerian 5.0 scale</span></div>
-            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-bullseye" style="color:#a78bfa;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">See exactly what GPA you need to hit First Class or Second Class Upper</span></div>
-            <div style="display:flex;gap:12px;align-items:flex-start;"><i class="fa-solid fa-users" style="color:#22c55e;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Anonymous peer comparison — see how you stack up at your school</span></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-calculator" style="color:#38bdf8;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Works out your CGPA for you, correctly, on the Nigerian 5.0 scale</span></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;"><i class="fa-solid fa-bullseye" style="color:#a78bfa;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Tells you exactly what grades you need to reach First Class or Second Class Upper</span></div>
+            <div style="display:flex;gap:12px;align-items:flex-start;"><i class="fa-solid fa-users" style="color:#22c55e;margin-top:3px;"></i><span style="color:#cbd5e1;font-size:13px;">Lets you see how you compare to other students, anonymously</span></div>
         </div>
         <button class="auth-btn" type="button" onclick="dismissLanding()" style="max-width:320px;margin:0 auto;"><i class="fa-solid fa-arrow-right"></i><span>Get Started</span></button>
     </div>
@@ -375,7 +375,7 @@
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">
             <input type="checkbox" id="sharedDeviceCheck" style="margin-top:3px;accent-color:#38bdf8;cursor:pointer;">
-            <label for="sharedDeviceCheck" style="font-size:12px;color:#94a3b8;cursor:pointer;">This is a shared or public computer (e.g. cybercafé) — don't remember my data on this device after I sign out.</label>
+            <label for="sharedDeviceCheck" style="font-size:12px;color:#94a3b8;cursor:pointer;">This is a shared or public computer (e.g. cybercafé), so don't remember my data on this device after I sign out.</label>
         </div>
         <button class="auth-btn" id="auth-btn" type="button" onclick="handleAuth()">
             <i class="fa-solid fa-right-to-bracket"></i>
@@ -463,7 +463,7 @@
         </div>
         <div class="card" id="goalsCard">
             <div class="card-title"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-bullseye"></i></div><h2>Your Targets</h2></div>
-            <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">How close you are to the numbers that actually matter — classification, scholarships, internship cutoffs, NYSC preferences, whatever you're aiming for.</p>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">How close you are to the numbers that actually matter: classification, scholarships, internship cutoffs, NYSC preferences, whatever you're aiming for.</p>
             <div id="builtInTargets"></div>
             <div id="customGoalsList"></div>
             <div class="goal-add-row">
@@ -492,7 +492,7 @@
         </div>
         <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-                <div class="card-title" style="margin-bottom:0;"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-clock-rotate-left"></i></div><h2>Semester History <span style="font-size:11px;color:var(--text3);font-weight:400;">— tap to expand &amp; edit</span></h2></div>
+                <div class="card-title" style="margin-bottom:0;"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-clock-rotate-left"></i></div><h2>Semester History <span style="font-size:11px;color:var(--text3);font-weight:400;">(tap to expand &amp; edit)</span></h2></div>
                 <div style="display:flex;gap:8px;" id="exportActionsRow">
                     <button class="btn btn-secondary" style="width:auto;padding:8px 16px;margin:0;font-size:13px;" onclick="window.print()" aria-label="Print dashboard"><i class="fa-solid fa-print"></i> Print</button>
                     <button class="btn btn-purple" style="width:auto;padding:8px 16px;margin:0;font-size:13px;" onclick="exportTranscriptPDF()" aria-label="Download transcript as PDF"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
@@ -521,7 +521,7 @@
             </div>
             <p style="font-size:11px;color:var(--text3);margin:-2px 0 4px;">Tip: a digital screenshot from your result portal scans far more accurately than a photo of a printed sheet. If photographing paper, lay it flat, crop tightly to just the table, and avoid glare or shadows.</p>
             <div class="paste-panel" id="pastePanel">
-                <label style="font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:8px;">Paste one course per line — e.g. <code>MTH101 3 A</code> or <code>MTH101, 3 units, A</code></label>
+                <label style="font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:8px;">Paste one course per line, e.g. <code>MTH101 3 A</code> or <code>MTH101, 3 units, A</code></label>
                 <textarea id="pasteText" placeholder="MTH101 3 A&#10;CSC102 4 B&#10;GST101 2 C"></textarea>
                 <button class="btn btn-primary" type="button" onclick="parsePastedCourses()" style="margin-top:0;"><i class="fa-solid fa-wand-magic-sparkles"></i> Fill Courses From Paste</button>
             </div>
@@ -583,7 +583,7 @@
             <div class="switch-row">
                 <div>
                     <div class="switch-label">Exclude 100L from CGPA</div>
-                    <div class="switch-sub">Turn on if your university doesn't count first-year results toward final CGPA. This affects CGPA, Best GPA, Total Courses, GPA Trend and the Weak Course Detector everywhere on your dashboard — 100L still stays visible in Semester History as your full record.</div>
+                    <div class="switch-sub">Turn on if your university doesn't count first-year results toward final CGPA. This affects CGPA, Best GPA, Total Courses, GPA Trend and the Weak Course Detector everywhere on your dashboard. 100L still stays visible in Semester History as your full record.</div>
                 </div>
                 <label class="switch"><input type="checkbox" id="exclude100L"><span class="slider"></span></label>
             </div>
@@ -591,7 +591,7 @@
             <div class="switch-row">
                 <div>
                     <div class="switch-label">Compare my CGPA anonymously with peers</div>
-                    <div class="switch-sub">See how you stack up against other GradeGuard students at your university and level — opt-in only. Nobody, including us, can see your individual CGPA through this feature; you only ever see a group percentile, and only once at least 5 students at your university &amp; level have also opted in. Turn this off anytime to stop sharing.</div>
+                    <div class="switch-sub">See how you stack up against other GradeGuard students at your university and level. It's opt-in only. Nobody, including us, can see your individual CGPA through this feature; you only ever see a group percentile, and only once at least 5 students at your university &amp; level have also opted in. Turn this off anytime to stop sharing.</div>
                 </div>
                 <label class="switch"><input type="checkbox" id="peerOptIn"><span class="slider"></span></label>
             </div>
@@ -917,7 +917,7 @@ function updatePasswordStrength() {
     else if (score >= 2) { color = '#f59e0b'; text = 'Fair'; }
     fill.style.width = pct + '%';
     fill.style.background = color;
-    label.textContent = text + (pw.length < 8 ? ' — use at least 8 characters, with a letter and a number' : '');
+    label.textContent = text + (pw.length < 8 ? ', use at least 8 characters with a letter and a number' : '');
 }
 
 async function signInWithGoogle() {
@@ -985,7 +985,7 @@ function showAuthMsg(msg) {
 
 async function handleSignOut() {
     if (hasPendingChanges()) {
-        toast("You have changes that haven't synced to the cloud yet. They're kept safely on this device and will sync automatically next time you sign in here — but they will remain in this browser's storage until then.", 'warning', 8000);
+        toast("You have changes that haven't synced to the cloud yet. They're kept safely on this device and will sync automatically next time you sign in here, but they will remain in this browser's storage until then.", 'warning', 8000);
     } else {
         // Nothing unsynced left — safe to wipe this device's cached copy of the data now,
         // so it doesn't linger in browser storage after sign-out (important on shared/public computers).
@@ -1003,19 +1003,21 @@ function setSyncStatus(status) {
     else if (status === 'synced') badge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#22c55e;"></i><span class="sync-text"> Synced</span>';
     else if (status === 'loading') badge.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i><span class="sync-text"> Loading...</span>';
     else if (status === 'error')  badge.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i><span class="sync-text"> Sync error</span>';
-    else if (status === 'offline') badge.innerHTML = '<i class="fa-solid fa-wifi" style="color:#f59e0b;"></i><span class="sync-text"> Offline — saved on device</span>';
+    else if (status === 'offline') badge.innerHTML = '<i class="fa-solid fa-wifi" style="color:#f59e0b;"></i><span class="sync-text"> Offline, saved on device</span>';
     else badge.innerHTML = '';
 }
 
 // ---- Onboarding tour (first-time walkthrough) ----
 var TOUR_STEPS = [
-    { tab: 'dashboard', selector: '.header-left', title: 'Welcome to GradeGuard! 👋', text: "Let's do a 30-second tour so you know exactly where everything is. Tap Next to continue, or Skip tour any time." },
-    { tab: 'dashboard', selector: '.stats-grid', title: 'Your Dashboard', text: 'This is your home base — your CGPA, semester count, best GPA, and total courses update automatically every time you add a semester.' },
-    { tab: 'dashboard', selector: '.standing-card', title: 'Class Standing', text: 'This bar shows exactly where you sit — Pass, Third Class, Second Class, or First Class — based on your current CGPA.' },
-    { tab: 'add', selector: '.quick-actions-row', title: 'Adding semesters, the fast way', text: '"Copy Last Semester\'s Courses" pre-fills your course list from last time. "Paste Grades Instead" lets you paste a whole list at once instead of typing each course one by one.' },
+    { tab: 'dashboard', selector: '.header-left', title: 'Welcome to GradeGuard! 👋', text: "Let's do a quick tour so you know exactly where everything is. Tap Next to continue, or Skip tour any time." },
+    { tab: 'dashboard', selector: '.stats-grid', title: 'Your Dashboard', text: 'This is your home base: your CGPA, semester count, best GPA, and total courses update automatically every time you add a semester.' },
+    { tab: 'dashboard', selector: '.standing-card', title: 'Class Standing', text: 'This bar shows exactly where you sit: Pass, Third Class, Second Class, or First Class, based on your current CGPA.' },
+    { tab: 'dashboard', selector: '#goalsCard', title: 'Your Targets', text: 'See exactly how far you are from First Class or Second Class Upper, plus any personal targets you add yourself, like a scholarship cutoff or an internship requirement.' },
+    { tab: 'dashboard', selector: '#peerCard', title: 'Peer Comparison', text: "Opt in to anonymously see how you compare to other students at your school. Nobody, including us, can see your individual CGPA through this. If not enough students have joined yet, you'll get an invite link to share with classmates." },
+    { tab: 'add', selector: '.quick-actions-row', title: 'Adding semesters, the fast way', text: '"Copy Last Semester\'s Courses" pre-fills your list from last time. "Paste Grades Instead" lets you paste a whole list at once. Or tap "Scan Result Screenshot" to pull your grades straight from a photo or screenshot.' },
     { tab: 'add', selector: '.course-header', title: 'Retaking a course?', text: 'If you\'re re-entering a course you failed before, tick the ↺ Resit box. GradeGuard will automatically stop counting the old failed attempt in your CGPA.' },
     { tab: 'calculator', selector: '#page-calculator .card', title: 'Target GPA Calculator', text: 'Not sure what grades you need to graduate with First Class or Second Class Upper? Enter your numbers here and GradeGuard tells you exactly what GPA you need per semester.' },
-    { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list — this personalizes GradeGuard for your institution." },
+    { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list. This personalizes GradeGuard for your institution." },
     { tab: 'profile', selector: '.switch-row', title: '100L doesn\'t always count', text: "Some universities don't count your first year toward final CGPA. If yours doesn't, flip this on." },
     { tab: 'dashboard', selector: '#exportActionsRow', title: 'Show off your progress', text: 'Once you\'ve added a semester, hit "Export PDF" any time for a clean, shareable transcript-style document of your academic record.' },
 ];
@@ -1039,7 +1041,7 @@ function confirmReplayTour() {
 }
 function endTour() {
     document.getElementById('tourMask').classList.remove('show');
-    try { localStorage.setItem('gg_tour_done_v1', '1'); } catch(e) {}
+    try { localStorage.setItem('gg_tour_done_v2', '1'); } catch(e) {}
     if (tourResizeHandler) { window.removeEventListener('resize', tourResizeHandler); tourResizeHandler = null; }
 }
 function nextTourStep() {
@@ -1080,7 +1082,7 @@ function positionHighlight(selector) {
 }
 function maybeAutoStartTour() {
     var seen = false;
-    try { seen = !!localStorage.getItem('gg_tour_done_v1'); } catch(e) {}
+    try { seen = !!localStorage.getItem('gg_tour_done_v2'); } catch(e) {}
     if (!seen) setTimeout(function() { startTour(false); }, 900);
 }
 
@@ -1118,7 +1120,7 @@ function onUniInput() {
     if (!q) { dd.classList.remove('show'); return; }
     uniFilteredList = NIGERIAN_UNIVERSITIES.filter(function(u) { return u[0].toLowerCase().indexOf(q) !== -1; }).slice(0, 8);
     uniHighlightIdx = -1;
-    if (!uniFilteredList.length) { dd.innerHTML = '<div class="uni-empty">No match — you can still type your university\'s full name manually.</div>'; dd.classList.add('show'); return; }
+    if (!uniFilteredList.length) { dd.innerHTML = '<div class="uni-empty">No match, you can still type your university\'s full name manually.</div>'; dd.classList.add('show'); return; }
     dd.innerHTML = uniFilteredList.map(function(u, i) {
         return '<div class="uni-option" onmousedown="selectUni(' + i + ')"><div>' + u[0] + '</div><div class="uni-state">' + u[1] + ' State</div></div>';
     }).join('');
@@ -1242,11 +1244,11 @@ function hasPendingChanges() {
 
 window.addEventListener('offline', function() {
     isOnline = false;
-    if (currentUser) { setSyncStatus('offline'); toast("You're offline — changes will be saved on this device and synced automatically when you reconnect.", 'warning', 6000); }
+    if (currentUser) { setSyncStatus('offline'); toast("You're offline. Changes will be saved on this device and synced automatically when you reconnect.", 'warning', 6000); }
 });
 window.addEventListener('online', function() {
     isOnline = true;
-    if (currentUser) { toast('Back online — syncing your changes...', 'info', 3000); processPendingQueue(); }
+    if (currentUser) { toast('Back online, syncing your changes...', 'info', 3000); processPendingQueue(); }
 });
 
 // Pushes every queued offline change to Supabase, in order. Safe to call
@@ -1283,7 +1285,7 @@ async function processPendingQueue() {
                 if (checkRes.data && localSem && localSem.serverSnapshot) {
                     var remoteSnap = JSON.stringify({ name: checkRes.data.name, courses: checkRes.data.courses, gpa: checkRes.data.gpa, level: checkRes.data.level });
                     if (remoteSnap !== localSem.serverSnapshot) {
-                        toast('Heads up: "' + upd.name + '" was also changed on another device. Your latest edit here was saved — worth a quick double-check that it looks right.', 'warning', 8000);
+                        toast('Heads up: "' + upd.name + '" was also changed on another device. Your latest edit here was saved, worth a quick double-check that it looks right.', 'warning', 8000);
                     }
                 }
             } catch (checkErr) { /* non-fatal — proceed with the update either way */ }
@@ -1348,7 +1350,7 @@ async function loadData() {
         isOnline = false;
         var hadCache = loadLocalCache();
         setSyncStatus('offline');
-        if (hadCache) toast("You're offline — showing your last saved data. New changes will sync once you reconnect.", 'warning', 6000);
+        if (hadCache) toast("You're offline. Showing your last saved data, new changes will sync once you reconnect.", 'warning', 6000);
         return;
     }
     try {
@@ -1384,7 +1386,7 @@ async function loadData() {
         isOnline = false;
         var hadCache2 = loadLocalCache();
         setSyncStatus('offline');
-        if (hadCache2) toast("Couldn't reach the server — showing your last saved data instead.", 'warning', 6000);
+        if (hadCache2) toast("Couldn't reach the server, showing your last saved data instead.", 'warning', 6000);
     }
 }
 
@@ -1419,7 +1421,7 @@ async function saveSemester() {
     initCourseRows();
     switchTab('dashboard');
     if (isOnline) { processPendingQueue(); toast('Semester saved to cloud!', 'success'); syncPeerCgpaIfOptedIn(); }
-    else { setSyncStatus('offline'); toast("Saved on this device — it'll sync to the cloud once you're back online.", 'warning'); }
+    else { setSyncStatus('offline'); toast("Saved on this device, it'll sync to the cloud once you're back online.", 'warning'); }
     setTimeout(function() { savingSemesterLock = false; if (saveBtn) saveBtn.disabled = false; }, 900);
 }
 
@@ -1495,7 +1497,7 @@ async function updateSemester(id, btn) {
     savePendingState(); saveLocalCache();
     renderAll();
     if (isOnline) { processPendingQueue(); toast('Semester updated!', 'success'); syncPeerCgpaIfOptedIn(); }
-    else { setSyncStatus('offline'); toast("Updated on this device — it'll sync once you're back online.", 'warning'); }
+    else { setSyncStatus('offline'); toast("Updated on this device, it'll sync once you're back online.", 'warning'); }
     setTimeout(function() { updatingLock[id] = false; }, 900);
 }
 
@@ -1523,7 +1525,7 @@ async function confirmDelete() {
     closeModal();
     renderAll();
     if (isOnline) { processPendingQueue(); toast('Semester deleted.', 'info'); syncPeerCgpaIfOptedIn(); }
-    else { setSyncStatus('offline'); toast("Deleted on this device — it'll sync once you're back online.", 'warning'); }
+    else { setSyncStatus('offline'); toast("Deleted on this device, it'll sync once you're back online.", 'warning'); }
 }
 
 // ---- Delete account & data ----
@@ -1531,7 +1533,7 @@ function openDeleteAccountModal() { document.getElementById('deleteAccountModal'
 function closeDeleteAccountModal() { document.getElementById('deleteAccountModal').classList.remove('show'); }
 async function confirmDeleteAccount() {
     closeDeleteAccountModal();
-    if (!isOnline) { toast("You need to be online to delete your account — please reconnect and try again.", 'warning', 6000); return; }
+    if (!isOnline) { toast("You need to be online to delete your account, please reconnect and try again.", 'warning', 6000); return; }
     toast('Deleting your account and data...', 'info', 3000);
     try {
         var res = await sb.functions.invoke('delete-account');
@@ -1541,7 +1543,7 @@ async function confirmDeleteAccount() {
         toast('Your GradeGuard account and data have been permanently deleted.', 'success', 4000);
         setTimeout(handleSignOut, 1200);
     } catch (e) {
-        toast("Couldn't delete your account — check your connection and try again.", 'error', 6000);
+        toast("Couldn't delete your account, check your connection and try again.", 'error', 6000);
     }
 }
 
@@ -1590,7 +1592,7 @@ async function saveProfile() {
     applyResitExclusions();
     renderAll();
     if (isOnline) { processPendingQueue(); toast('Profile saved to cloud!', 'success'); syncPeerCgpaIfOptedIn(); }
-    else { setSyncStatus('offline'); toast("Profile saved on this device — it'll sync once you're back online.", 'warning'); }
+    else { setSyncStatus('offline'); toast("Profile saved on this device, it'll sync once you're back online.", 'warning'); }
     var msg = document.getElementById('profileMsg');
     msg.style.display = 'flex';
     setTimeout(function() { msg.style.display = 'none'; }, 3000);
@@ -1629,7 +1631,7 @@ async function exportTranscriptPDF() {
     if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF.API.autoTable) {
         toast('Preparing your transcript...', 'info', 2500);
         try { await ensurePdfLibs(); }
-        catch (e) { toast('Could not load the PDF engine — check your connection and try again.', 'error'); return; }
+        catch (e) { toast('Could not load the PDF engine. Check your connection and try again.', 'error'); return; }
     }
     var doc = new window.jspdf.jsPDF();
     var cgpa = calculateCGPA();
@@ -1639,7 +1641,7 @@ async function exportTranscriptPDF() {
     doc.rect(0, 0, 210, 32, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18); doc.setFont(undefined, 'bold');
-    doc.text('GradeGuard — Academic Transcript', 14, 15);
+    doc.text('GradeGuard: Academic Transcript', 14, 15);
     doc.setFontSize(10); doc.setFont(undefined, 'normal');
     doc.text((profile.uni || 'Nigerian University') + '  •  Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), 14, 24);
 
@@ -1667,7 +1669,7 @@ async function exportTranscriptPDF() {
             head: [[s.name + (s.level ? ' (' + s.level + ')' : ''), 'Units', 'Grade', 'Points']],
             body: s.courses.map(function(c) {
                 var pts = GRADE_POINTS();
-                return [c.name + (c.resit ? '  (resit)' : '') + (c.excluded ? '  — excluded from CGPA' : ''), c.units, c.grade, (pts[c.grade]||0).toFixed(1)];
+                return [c.name + (c.resit ? '  (resit)' : '') + (c.excluded ? '  (excluded from CGPA)' : ''), c.units, c.grade, (pts[c.grade]||0).toFixed(1)];
             }),
             foot: [['Semester GPA: ' + s.gpa + '   •   Total Units: ' + tu, '', '', '']],
             theme: 'grid',
@@ -1681,7 +1683,7 @@ async function exportTranscriptPDF() {
     });
 
     doc.setFontSize(8); doc.setTextColor(148, 163, 184);
-    doc.text('Generated with GradeGuard — this is a self-tracking summary, not an official university transcript.', 14, 288);
+    doc.text('Generated with GradeGuard. This is a self-tracking summary, not an official university transcript.', 14, 288);
 
     doc.save((profile.name ? profile.name.replace(/\s+/g,'_') : 'GradeGuard') + '_Transcript.pdf');
     toast('Transcript PDF downloaded!', 'success');
@@ -1744,7 +1746,7 @@ function loadProfileFields() {
 function gradeOptions(selected) {
     var pts = GRADE_POINTS();
     var descs = { 'A': 'Excellent', 'B': 'Good', 'C': 'Average', 'D': 'Below Avg', 'E': 'Poor', 'F': 'Fail' };
-    return '<option value="">Grade</option>' + ALL_GRADES.map(function(g) { return '<option value="' + g + '"' + (selected === g ? ' selected' : '') + '>' + g + ' — ' + descs[g] + ' (' + pts[g].toFixed(1) + ')</option>'; }).join('');
+    return '<option value="">Grade</option>' + ALL_GRADES.map(function(g) { return '<option value="' + g + '"' + (selected === g ? ' selected' : '') + '>' + g + ', ' + descs[g] + ' (' + pts[g].toFixed(1) + ')</option>'; }).join('');
 }
 
 function initCourseRows() { document.getElementById('coursesList').innerHTML = ''; for (var i = 0; i < 3; i++) addCourseRow(); }
@@ -1793,7 +1795,7 @@ function duplicateLastSemester() {
     var last = semesters[semesters.length - 1];
     document.getElementById('coursesList').innerHTML = '';
     last.courses.forEach(function(c) { addCourseRow(c.name, c.units, ''); });
-    toast('Copied ' + last.courses.length + ' course(s) from "' + last.name + '" — just fill in the new grades.', 'info');
+    toast('Copied ' + last.courses.length + ' course(s) from "' + last.name + '", just fill in the new grades.', 'info');
 }
 
 // ---- Paste-to-parse ----
@@ -1816,7 +1818,7 @@ function parsePastedCourses() {
         var name = nameTokens.join(' ').trim();
         if (name && units && grade) parsed.push({ name: name, units: units, grade: grade });
     });
-    if (!parsed.length) { toast('Could not read any courses from that text — try the format "MTH101 3 A", one per line.', 'error', 6000); return; }
+    if (!parsed.length) { toast('Could not read any courses from that text. Try the format "MTH101 3 A", one per line.', 'error', 6000); return; }
     document.getElementById('coursesList').innerHTML = '';
     parsed.forEach(function(c) { addCourseRow(c.name, c.units, c.grade); });
     document.getElementById('pastePanel').classList.remove('show');
@@ -1842,7 +1844,7 @@ var ocrWorkerLoading = null;
 var ocrCancelled = false;
 
 var OCR_STATUS_LABELS = {
-    'loading tesseract core': 'Loading OCR engine (first scan only — faster after this)...',
+    'loading tesseract core': 'Loading OCR engine (first scan only, faster after this)...',
     'initializing tesseract': 'Starting up the scanner...',
     'loading language traineddata': 'Downloading language data (first scan only)...',
     'initializing api': 'Almost ready...',
@@ -2023,7 +2025,7 @@ async function handleOcrFileSelected(event) {
         return;
     }
     if (file.size > 15 * 1024 * 1024) {
-        toast('That image is quite large — try a smaller screenshot or crop it to just the results table.', 'warning', 6000);
+        toast('That image is quite large. Try a smaller screenshot or crop it to just the results table.', 'warning', 6000);
         return;
     }
     ocrCancelled = false;
@@ -2032,7 +2034,7 @@ async function handleOcrFileSelected(event) {
         await ensureTesseract();
     } catch (e) {
         hideOcrStatus();
-        toast('Could not load the scanner — check your connection and try again, or use "Paste Grades Instead".', 'error', 6000);
+        toast('Could not load the scanner. Check your connection and try again, or use "Paste Grades Instead".', 'error', 6000);
         return;
     }
     if (ocrCancelled) return;
@@ -2040,7 +2042,7 @@ async function handleOcrFileSelected(event) {
     // doesn't cancel anything, just confirms it's still genuinely working, not frozen.
     var slowConnectionNotice = setTimeout(function() {
         if (!ocrCancelled) {
-            toast("Still working — this can take a bit longer on a slower connection. Feel free to keep waiting, or cancel and use \"Paste Grades Instead\".", 'info', 8000);
+            toast("Still working. This can take a bit longer on a slower connection, feel free to keep waiting or cancel and use \"Paste Grades Instead\".", 'info', 8000);
         }
     }, 20000);
     try {
@@ -2061,21 +2063,21 @@ async function handleOcrFileSelected(event) {
         hideOcrStatus();
         var text = (result && result.data && result.data.text || '').trim();
         if (!text) {
-            toast("Couldn't read any text from that image — try a clearer, well-lit screenshot, or use \"Paste Grades Instead\".", 'error', 7000);
+            toast("Couldn't read any text from that image. Try a clearer, well-lit screenshot, or use \"Paste Grades Instead\".", 'error', 7000);
             return;
         }
         document.getElementById('pasteText').value = text;
         document.getElementById('pastePanel').classList.add('show');
         document.getElementById('pasteText').scrollIntoView({ block: 'center', behavior: 'smooth' });
-        toast('Scanned! Double-check the text below before tapping "Fill Courses From Paste" — OCR isn\'t perfect.', 'info', 7000);
+        toast('Scanned! Double-check the text below before tapping "Fill Courses From Paste". OCR isn\'t perfect.', 'info', 7000);
     } catch (e) {
         clearTimeout(slowConnectionNotice);
         if (ocrCancelled) return;
         hideOcrStatus();
         var isTimeout = e && /taking too long/.test(e.message || '');
         var msg = isTimeout
-            ? "The scanner is taking too long on this connection — try \"Paste Grades Instead\" for now."
-            : 'Something went wrong reading that image — try again, or use "Paste Grades Instead".';
+            ? "The scanner is taking too long on this connection. Try \"Paste Grades Instead\" for now."
+            : 'Something went wrong reading that image. Try again, or use "Paste Grades Instead".';
         toast(msg, 'error', 7000);
         // The worker may be in a bad state after a failure or timeout — drop it so the next attempt starts fresh.
         ocrWorker = null;
@@ -2126,7 +2128,7 @@ function renderChart() {
             return;
         }
         ensureChartJs().then(renderChart).catch(function() {
-            toast('Could not load the chart library — check your connection and try again.', 'error');
+            toast('Could not load the chart library. Check your connection and try again.', 'error');
         });
         return;
     }
@@ -2165,7 +2167,7 @@ function renderGpaProjection(included) {
     var completed = included.length;
     var remaining = totalSemesters - completed;
     if (remaining <= 0) {
-        box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i>You\'ve reached your program\'s total semester count — <strong class="big">' + currentCGPA.toFixed(2) + '</strong> is your final CGPA.</div>';
+        box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i>You\'ve reached your program\'s total semester count. <strong class="big">' + currentCGPA.toFixed(2) + '</strong> is your final CGPA.</div>';
         return;
     }
     // "Recent pace" = average GPA of the last up to 3 semesters — more predictive of where
@@ -2182,7 +2184,7 @@ function renderGpaProjection(included) {
     var standing = getStanding(projectedCGPA);
     var diff = projectedCGPA - currentCGPA;
     var trendWord = diff > 0.03 ? 'rising' : (diff < -0.03 ? 'dipping' : 'steady');
-    box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>At your pace over the last ' + recentSlice.length + ' semester(s), you\'re on track to graduate with a CGPA around <strong class="big">' + projectedCGPA.toFixed(2) + '</strong> — <strong>' + standing + '</strong>.<div class="proj-sub">Based on ' + completed + ' of ' + totalSemesters + ' semesters completed, trend currently ' + trendWord + '. This is an estimate, not a guarantee — keep it updated each semester.</div></div>';
+    box.innerHTML = '<div class="gpa-projection"><i class="fa-solid fa-compass" style="margin-right:6px;"></i>At your pace over the last ' + recentSlice.length + ' semester(s), you\'re on track to graduate with a CGPA around <strong class="big">' + projectedCGPA.toFixed(2) + '</strong>, projected as <strong>' + standing + '</strong>.<div class="proj-sub">Based on ' + completed + ' of ' + totalSemesters + ' semesters completed, trend currently ' + trendWord + '. This is an estimate, not a guarantee, so keep it updated each semester.</div></div>';
 }
 
 var currentWeakList = []; // tracked at render time so "Simulate All Together" can read every course's picked grade
@@ -2258,9 +2260,9 @@ async function fetchAndRenderPeerComparison() {
     if (!card || !content) return;
     card.style.display = 'block';
     if (!profile || !profile.participatePeerStats) {
-        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-users" style="color:var(--accent);"></i><span>Curious how you compare to other students at your university? <a onclick="switchTab(\'profile\')">Opt in anonymously in your Profile</a> — nobody, including us, can see your individual CGPA through this.</span></div>';        return;
+        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-users" style="color:var(--accent);"></i><span>Curious how you compare to other students at your university? <a onclick="switchTab(\'profile\')">Opt in anonymously in your Profile</a>. Nobody, including us, can see your individual CGPA through this.</span></div>';        return;
     }
-    if (!isOnline) { content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-wifi" style="color:var(--gold);"></i><span>Peer comparison needs an internet connection — reconnect to see your standing.</span></div>'; return; }
+    if (!isOnline) { content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-wifi" style="color:var(--gold);"></i><span>Peer comparison needs an internet connection. Reconnect to see your standing.</span></div>'; return; }
     content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-spinner fa-spin"></i><span>Checking your standing...</span></div>';
     try {
         var res = await sb.rpc('get_peer_percentile');
@@ -2271,13 +2273,13 @@ async function fetchAndRenderPeerComparison() {
             return;
         }
         if (row.percentile === null) {
-            content.innerHTML = '<div class="peer-teaser" style="flex-direction:column;align-items:flex-start;"><div style="display:flex;gap:12px;align-items:center;"><i class="fa-solid fa-seedling" style="color:var(--green);"></i><span>Not enough students at your university &amp; level have opted in yet (needs at least 5 — currently <strong>' + row.group_size + '</strong>). Invite classmates to unlock it faster!</span></div><button type="button" class="btn btn-secondary" style="margin-top:10px;width:auto;padding:8px 16px;" onclick="copyReferralLink()"><i class="fa-solid fa-link"></i> Copy Invite Link</button></div>';
+            content.innerHTML = '<div class="peer-teaser" style="flex-direction:column;align-items:flex-start;"><div style="display:flex;gap:12px;align-items:center;"><i class="fa-solid fa-seedling" style="color:var(--green);"></i><span>Not enough students at your university &amp; level have opted in yet (needs at least 5, currently <strong>' + row.group_size + '</strong>). Invite classmates to unlock it faster!</span></div><button type="button" class="btn btn-secondary" style="margin-top:10px;width:auto;padding:8px 16px;" onclick="copyReferralLink()"><i class="fa-solid fa-link"></i> Copy Invite Link</button></div>';
             return;
         }
         var topPct = Math.max(1, Math.round(100 - row.percentile));
         content.innerHTML = '<div class="peer-result"><div class="peer-percentile">Top ' + topPct + '%</div><div class="peer-sub">You\'re doing better than <strong>' + Math.round(row.percentile) + '%</strong> of ' + escapeHtml(profile.level || 'your level') + ' students at ' + escapeHtml(profile.uni || 'your university') + ' using GradeGuard, based on <strong>' + row.group_size + '</strong> opted-in students (average CGPA ' + parseFloat(row.avg_cgpa).toFixed(2) + ').</div></div>';
     } catch (e) {
-        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-circle-info" style="color:var(--text3);"></i><span>Peer comparison isn\'t available right now — it may still need a one-time setup step. Check back soon.</span></div>';
+        content.innerHTML = '<div class="peer-teaser"><i class="fa-solid fa-circle-info" style="color:var(--text3);"></i><span>Peer comparison isn\'t available right now. It may still need a one-time setup step. Check back soon.</span></div>';
     }
 }
 
@@ -2290,7 +2292,7 @@ async function addGoal() {
     var target = parseFloat(targetInput.value);
     if (!label) { toast('Give your target a name, e.g. "Scholarship Cutoff" or "NYSC Posting Preference".', 'warning'); return; }
     if (isNaN(target) || target <= 0 || target > 5) { toast('Enter a target CGPA between 0 and 5.', 'warning'); return; }
-    if (!isOnline) { toast("You'll need to be online to add a target — please reconnect and try again.", 'warning', 6000); return; }
+    if (!isOnline) { toast("You'll need to be online to add a target, please reconnect and try again.", 'warning', 6000); return; }
     try {
         var res = await sb.from('goals').insert({ user_id: currentUser.id, label: label, target_cgpa: target }).select().single();
         if (res.error) throw res.error;
@@ -2300,12 +2302,12 @@ async function addGoal() {
         renderAll();
         toast('Target added!', 'success');
     } catch (e) {
-        toast("Couldn't save that target — it may need a one-time setup step still. Try again shortly.", 'error', 6000);
+        toast("Couldn't save that target. It may need a one-time setup step still, try again shortly.", 'error', 6000);
     }
 }
 
 async function deleteGoal(id) {
-    if (!isOnline) { toast("You'll need to be online to remove a target — please reconnect and try again.", 'warning', 6000); return; }
+    if (!isOnline) { toast("You'll need to be online to remove a target, please reconnect and try again.", 'warning', 6000); return; }
     try {
         var res = await sb.from('goals').delete().eq('id', id);
         if (res.error) throw res.error;
@@ -2314,7 +2316,7 @@ async function deleteGoal(id) {
         renderAll();
         toast('Target removed.', 'info');
     } catch (e) {
-        toast("Couldn't remove that target — check your connection and try again.", 'error', 6000);
+        toast("Couldn't remove that target. Check your connection and try again.", 'error', 6000);
     }
 }
 
@@ -2475,7 +2477,7 @@ function renderAll() {
         }).join('');
         var sid = s.id;
         var levelSelectHtml = '<select class="edit-level" onclick="event.stopPropagation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;padding:2px 6px;margin-top:3px;">' + levelOpts.map(function(l){ return '<option' + (s.level===l?' selected':'') + '>' + (l||'No level set') + '</option>'; }).join('') + '</select>';
-        return '<div class="semester-card" id="semCard-' + sid + '"><div class="semester-card-header" onclick="toggleSemester(\'' + sid + '\')"><div><input class="sem-name-input" value="' + escapeHtml(s.name) + '" onclick="event.stopPropagation()"><div class="sem-info">' + s.courses.length + ' courses — tap to expand &amp; edit</div>' + levelSelectHtml + '</div><div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;"><div class="sem-gpa ' + gc + '"><i class="fa-solid ' + getStandingIcon(s.gpa) + '" aria-hidden="true"></i>' + s.gpa + '</div><div class="sem-info">GPA</div></div><i class="fa-solid fa-chevron-down expand-icon" aria-hidden="true"></i></div></div><div class="semester-breakdown"><table class="breakdown-table"><thead><tr><th>Course</th><th>Units</th><th>Grade</th><th title="Resit">Resit</th><th></th></tr></thead><tbody>' + rows + '</tbody></table><div class="breakdown-stats"><div><div class="bs-label">Total Units</div><div class="bs-val">' + tu + '</div></div><div><div class="bs-label">Semester GPA</div><div class="bs-val ' + gc + '">' + s.gpa + '</div></div><div><div class="bs-label">Standing</div><div class="bs-val">' + sl + '</div></div></div><button class="btn btn-secondary" type="button" onclick="addEditRow(this)" style="margin-top:0;margin-bottom:10px;"><i class="fa-solid fa-plus"></i> Add Course</button><div class="breakdown-actions"><button class="btn btn-warning" onclick="updateSemester(\'' + sid + '\', this)"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button><button class="btn btn-danger" onclick="openDeleteModal(\'' + sid + '\')" aria-label="Delete this semester"><i class="fa-solid fa-trash"></i> Delete</button></div></div></div>';
+        return '<div class="semester-card" id="semCard-' + sid + '"><div class="semester-card-header" onclick="toggleSemester(\'' + sid + '\')"><div><input class="sem-name-input" value="' + escapeHtml(s.name) + '" onclick="event.stopPropagation()"><div class="sem-info">' + s.courses.length + ' courses (tap to expand &amp; edit)</div>' + levelSelectHtml + '</div><div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;"><div class="sem-gpa ' + gc + '"><i class="fa-solid ' + getStandingIcon(s.gpa) + '" aria-hidden="true"></i>' + s.gpa + '</div><div class="sem-info">GPA</div></div><i class="fa-solid fa-chevron-down expand-icon" aria-hidden="true"></i></div></div><div class="semester-breakdown"><table class="breakdown-table"><thead><tr><th>Course</th><th>Units</th><th>Grade</th><th title="Resit">Resit</th><th></th></tr></thead><tbody>' + rows + '</tbody></table><div class="breakdown-stats"><div><div class="bs-label">Total Units</div><div class="bs-val">' + tu + '</div></div><div><div class="bs-label">Semester GPA</div><div class="bs-val ' + gc + '">' + s.gpa + '</div></div><div><div class="bs-label">Standing</div><div class="bs-val">' + sl + '</div></div></div><button class="btn btn-secondary" type="button" onclick="addEditRow(this)" style="margin-top:0;margin-bottom:10px;"><i class="fa-solid fa-plus"></i> Add Course</button><div class="breakdown-actions"><button class="btn btn-warning" onclick="updateSemester(\'' + sid + '\', this)"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button><button class="btn btn-danger" onclick="openDeleteModal(\'' + sid + '\')" aria-label="Delete this semester"><i class="fa-solid fa-trash"></i> Delete</button></div></div></div>';
     }).join('');
 }
 
