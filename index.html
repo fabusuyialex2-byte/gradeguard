@@ -533,13 +533,6 @@
                 </div>
                 <button type="button" class="btn btn-secondary" style="margin-top:14px;width:auto;padding:7px 16px;font-size:12px;" onclick="cancelOcrScan()"><i class="fa-solid fa-xmark"></i> Cancel</button>
             </div>
-            <!-- TEMPORARY DEBUG PANEL — shows exactly what image is being sent to the OCR engine,
-                 so the actual processing result can be inspected instead of guessed at. Remove
-                 once OCR accuracy on real result screenshots is confirmed working reliably. -->
-            <div class="paste-panel" id="ocrDebugPanel">
-                <label style="font-size:12px;color:var(--gold);font-weight:700;display:block;margin-bottom:8px;"><i class="fa-solid fa-bug"></i> Debug: this is the exact image sent to the scanner</label>
-                <img id="ocrDebugImage" style="max-width:100%;border:1px solid var(--border);border-radius:8px;background:#fff;">
-            </div>
             <div class="course-header" style="margin-top:16px;"><span>Course Name</span><span>Units</span><span>Grade</span><span title="Resit">Resit</span><span></span></div>
             <div id="coursesList"></div>
             <button class="btn btn-secondary" onclick="addCourseRow()" style="margin-top:6px;"><i class="fa-solid fa-plus"></i> Add Course</button>
@@ -2034,7 +2027,6 @@ async function handleOcrFileSelected(event) {
         return;
     }
     ocrCancelled = false;
-    document.getElementById('ocrDebugPanel').classList.remove('show');
     showOcrStatus('Loading the scanner...');
     try {
         await ensureTesseract();
@@ -2057,13 +2049,6 @@ async function handleOcrFileSelected(event) {
         showOcrStatus('Preparing the image...');
         var processedImage = await preprocessImageForOcr(file);
         if (ocrCancelled) { clearTimeout(slowConnectionNotice); return; }
-        // TEMPORARY DEBUG: display exactly what's being sent to the OCR engine.
-        try {
-            var debugUrl = URL.createObjectURL(processedImage);
-            var debugImg = document.getElementById('ocrDebugImage');
-            debugImg.src = debugUrl;
-            document.getElementById('ocrDebugPanel').classList.add('show');
-        } catch (e) { /* debug display failing should never block the actual scan */ }
         // No forced page-segmentation mode — sparse text (PSM 11) was tried here and, once the
         // image itself was confirmed clean and correctly sized via the debug preview, produced
         // worse results than Tesseract's own default automatic layout mode, not better. Letting
