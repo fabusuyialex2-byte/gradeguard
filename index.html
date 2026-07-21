@@ -80,6 +80,7 @@
         .stat-card { background: var(--card); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid var(--border); }
         .stat-card .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 16px; }
         .stat-card .value { font-size: 32px; font-weight: 700; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .stat-card .value.compact { font-size: 20px; flex-wrap: wrap; }
         .stat-card .value i { font-size: 16px; }
         .stat-card .label { font-size: 11px; color: var(--text2); margin-top: 4px; }
         .standing-card { background: var(--card); border-radius: 16px; padding: 20px 24px; border: 1px solid var(--border); margin-bottom: 24px; }
@@ -277,8 +278,8 @@
         .bottom-nav { display: none; }
         @media(max-width:768px) {
             .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; background: var(--card); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.25); }
-            .bottom-nav button { flex: 1; background: none; border: none; color: var(--text3); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; font-size: 10px; font-weight: 600; cursor: pointer; border-radius: 10px; }
-            .bottom-nav button i { font-size: 17px; }
+            .bottom-nav button { flex: 1; background: none; border: none; color: var(--text3); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 1px; font-size: 8.5px; font-weight: 600; cursor: pointer; border-radius: 10px; line-height: 1.15; white-space: normal; word-break: break-word; }
+            .bottom-nav button i { font-size: 15px; }
             .bottom-nav button.active { color: var(--accent); }
             .tabs { display: none; }
         }
@@ -287,6 +288,7 @@
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
             .stat-card { padding: 14px 10px; }
             .stat-card .value { font-size: 26px; }
+            .stat-card .value.compact { font-size: 15px; }
             .grading-grid { grid-template-columns: repeat(3, 1fr); }
             header { padding: 0 14px; height: 56px; }
             header h1 { font-size: 18px; }
@@ -443,6 +445,7 @@
     <div class="tabs">
         <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></button>
         <button class="tab" data-tab="add" onclick="switchTab('add')"><i class="fa-solid fa-plus"></i><span>Add Semester</span></button>
+        <button class="tab" data-tab="insights" onclick="switchTab('insights')"><i class="fa-solid fa-chart-pie"></i><span>Insights</span></button>
         <button class="tab" data-tab="calculator" onclick="switchTab('calculator')"><i class="fa-solid fa-calculator"></i><span>Calculator</span></button>
         <button class="tab" data-tab="profile" onclick="switchTab('profile')"><i class="fa-solid fa-user"></i><span>My Profile</span></button>
     </div>
@@ -450,7 +453,7 @@
         <div class="welcome-banner" id="welcomeBanner"><i class="fa-solid fa-user-graduate" style="font-size:20px;color:var(--accent);flex-shrink:0;"></i><span id="welcomeText"></span></div>
         <div class="welcome-banner" id="reengagementNudge" style="border-left-color:var(--gold);"></div>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-star"></i></div><div class="value" id="cgpaDisplay">—</div><div class="label">Current CGPA</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-star"></i></div><div class="value compact" id="cgpaDisplay">Current CGPA: —</div><div class="label" id="cgpaQualitative">Add semesters to see this</div></div>
             <div class="stat-card"><div class="stat-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-calendar-check"></i></div><div class="value" id="semesterCount" style="color:#a78bfa;">0</div><div class="label">Semesters</div></div>
             <div class="stat-card"><div class="stat-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;"><i class="fa-solid fa-trophy"></i></div><div class="value" id="bestGPA" style="color:#22c55e;">—</div><div class="label">Best GPA</div></div>
             <div class="stat-card"><div class="stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="fa-solid fa-book"></i></div><div class="value" id="totalCoursesCount" style="color:#f59e0b;">0</div><div class="label">Total Courses</div></div>
@@ -461,6 +464,9 @@
             <div class="progress-labels"><span>0.0</span><span>1.0 Pass</span><span>1.5 3rd</span><span>2.5 2nd Low</span><span>3.5 2nd Up</span><span>4.5 1st</span></div>
             <div id="standingBadge" style="margin-top:12px;font-size:14px;color:var(--text2);"></div>
         </div>
+        <div class="risk-banner" id="riskBanner"></div>
+    </div>
+    <div class="tab-page" id="page-insights">
         <div class="card" id="goalsCard">
             <div class="card-title"><div class="icon-circle" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i class="fa-solid fa-bullseye"></i></div><h2>Your Targets</h2></div>
             <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">How close you are to the numbers that actually matter: classification, scholarships, internship cutoffs, NYSC preferences, whatever you're aiming for.</p>
@@ -476,7 +482,6 @@
             <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-users"></i></div><h2>Peer Comparison</h2></div>
             <div id="peerContent"></div>
         </div>
-        <div class="risk-banner" id="riskBanner"></div>
         <div class="main-grid">
             <div class="card">
                 <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-chart-area"></i></div><h2>GPA Trend</h2></div>
@@ -622,7 +627,8 @@
 </div>
 <nav class="bottom-nav" aria-label="Main navigation">
     <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')" aria-label="Dashboard"><i class="fa-solid fa-chart-line"></i>Home</button>
-    <button data-tab="add" onclick="switchTab('add')" aria-label="Add semester"><i class="fa-solid fa-plus"></i>Add</button>
+    <button data-tab="add" onclick="switchTab('add')" aria-label="Add semester"><i class="fa-solid fa-plus"></i>Add Semester</button>
+    <button data-tab="insights" onclick="switchTab('insights')" aria-label="Insights"><i class="fa-solid fa-chart-pie"></i>Insights</button>
     <button data-tab="calculator" onclick="switchTab('calculator')" aria-label="Target calculator"><i class="fa-solid fa-calculator"></i>Target</button>
     <button data-tab="profile" onclick="switchTab('profile')" aria-label="My profile"><i class="fa-solid fa-user"></i>Profile</button>
 </nav>
@@ -809,6 +815,16 @@ function GRADE_POINTS() {
 function getIncludedSemesters() {
     if (profile && profile.exclude100L) return semesters.filter(function(s) { return s.level !== '100L'; });
     return semesters;
+}
+
+// Plain-language descriptor shown under the Current CGPA figure, from best to lowest tier.
+function getCgpaQualitative(cgpa) {
+    if (cgpa >= 4.5) return 'Excellent';
+    if (cgpa >= 3.5) return 'Great';
+    if (cgpa >= 2.5) return 'Very Good';
+    if (cgpa >= 1.5) return 'Good';
+    if (cgpa >= 1.0) return 'Fair';
+    return 'Needs Improvement';
 }
 
 function getStandingIcon(gpa) {
@@ -1012,14 +1028,15 @@ var TOUR_STEPS = [
     { tab: 'dashboard', selector: '.header-left', title: 'Welcome to GradeGuard! 👋', text: "Let's do a quick tour so you know exactly where everything is. Tap Next to continue, or Skip tour any time." },
     { tab: 'dashboard', selector: '.stats-grid', title: 'Your Dashboard', text: 'This is your home base: your CGPA, semester count, best GPA, and total courses update automatically every time you add a semester.' },
     { tab: 'dashboard', selector: '.standing-card', title: 'Class Standing', text: 'This bar shows exactly where you sit: Pass, Third Class, Second Class, or First Class, based on your current CGPA.' },
-    { tab: 'dashboard', selector: '#goalsCard', title: 'Your Targets', text: 'See exactly how far you are from First Class or Second Class Upper, plus any personal targets you add yourself, like a scholarship cutoff or an internship requirement.' },
-    { tab: 'dashboard', selector: '#peerCard', title: 'Peer Comparison', text: "Opt in to anonymously see how you compare to other students at your school. Nobody, including us, can see your individual CGPA through this. If not enough students have joined yet, you'll get an invite link to share with classmates." },
     { tab: 'add', selector: '.quick-actions-row', title: 'Adding semesters, the fast way', text: '"Copy Last Semester\'s Courses" pre-fills your list from last time. "Paste Grades Instead" lets you paste a whole list at once. Or tap "Scan Result Screenshot" to pull your grades straight from a photo or screenshot.' },
     { tab: 'add', selector: '.course-header', title: 'Retaking a course?', text: 'If you\'re re-entering a course you failed before, tick the ↺ Resit box. GradeGuard will automatically stop counting the old failed attempt in your CGPA.' },
+    { tab: 'insights', selector: '#goalsCard', title: 'Insights: Your Targets', text: 'This new tab holds your deeper progress tools. First up, see exactly how far you are from First Class or Second Class Upper, plus any personal targets you add yourself, like a scholarship cutoff or an internship requirement.' },
+    { tab: 'insights', selector: '#peerCard', title: 'Peer Comparison', text: "Opt in to anonymously see how you compare to other students at your school. Nobody, including us, can see your individual CGPA through this. If not enough students have joined yet, you'll get an invite link to share with classmates." },
+    { tab: 'insights', selector: '.main-grid', title: 'GPA Trend & Weak Courses', text: "Watch your GPA trend over time, and see which courses are dragging it down so you know exactly what to focus on." },
+    { tab: 'insights', selector: '#exportActionsRow', title: 'Show off your progress', text: 'Once you\'ve added a semester, hit "Export PDF" any time for a clean, shareable transcript-style document of your academic record.' },
     { tab: 'calculator', selector: '#page-calculator .card', title: 'Target GPA Calculator', text: 'Not sure what grades you need to graduate with First Class or Second Class Upper? Enter your numbers here and GradeGuard tells you exactly what GPA you need per semester.' },
     { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list. This personalizes GradeGuard for your institution." },
     { tab: 'profile', selector: '.switch-row', title: '100L doesn\'t always count', text: "Some universities don't count your first year toward final CGPA. If yours doesn't, flip this on." },
-    { tab: 'dashboard', selector: '#exportActionsRow', title: 'Show off your progress', text: 'Once you\'ve added a semester, hit "Export PDF" any time for a clean, shareable transcript-style document of your academic record.' },
 ];
 var tourIdx = 0;
 var tourResizeHandler = null;
@@ -1689,17 +1706,35 @@ async function exportTranscriptPDF() {
     toast('Transcript PDF downloaded!', 'success');
 }
 
+// Describes how far the student is from their next meaningful milestone (Second Class Upper,
+// then First Class), shown right under their name so it's the first thing they see. Falls back
+// to a gentle prompt if there's no data yet to calculate against.
+function getNextMilestoneText(cgpa) {
+    if (!semesters.length || isNaN(cgpa)) return 'Add a semester to see your target progress.';
+    var milestones = [
+        { label: 'Second Class Upper', target: 3.5 },
+        { label: 'First Class', target: 4.5 }
+    ];
+    var next = milestones.find(function(m) { return cgpa < m.target; });
+    if (!next) return 'You\'ve already reached First Class, well done!';
+    var gap = (next.target - cgpa).toFixed(2);
+    return 'Target: ' + next.label + ', you need ' + gap + ' more to get there.';
+}
 function updateWelcomeBanner() {
     var banner = document.getElementById('welcomeBanner');
     var text   = document.getElementById('welcomeText');
     if (profile && profile.name) {
         banner.classList.add('show');
-        var parts = [];
-        if (profile.name)   parts.push('<strong style="color:var(--accent);">' + escapeHtml(profile.name) + '</strong>');
-        if (profile.level)  parts.push(escapeHtml(profile.level));
-        if (profile.dept)   parts.push(escapeHtml(profile.dept));
-        if (profile.matric) parts.push(escapeHtml(profile.matric));
-        text.innerHTML = 'Welcome back, ' + parts.join(' &nbsp;&bull;&nbsp; ');
+        var infoParts = [];
+        if (profile.level)  infoParts.push(escapeHtml(profile.level));
+        if (profile.dept)   infoParts.push(escapeHtml(profile.dept));
+        if (profile.matric) infoParts.push(escapeHtml(profile.matric));
+        var infoLine = infoParts.join(' &nbsp;&bull;&nbsp; ');
+        var cgpa = parseFloat(calculateCGPA());
+        var targetLine = getNextMilestoneText(cgpa);
+        text.innerHTML = 'Good day, <strong style="color:var(--accent);">' + escapeHtml(profile.name) + '</strong>' +
+            (infoLine ? '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + infoLine + '</div>' : '') +
+            '<div style="font-size:13px;color:var(--text2);margin-top:4px;"><i class="fa-solid fa-bullseye" style="color:var(--purple);margin-right:5px;"></i>' + targetLine + '</div>';
     } else { banner.classList.remove('show'); }
 }
 
@@ -2441,9 +2476,10 @@ function renderAll() {
     var best = included.length ? Math.max.apply(null, included.map(function(s) { return s.gpa; })).toFixed(2) : '—';
     var tc   = included.reduce(function(a, s) { return a + s.courses.length; }, 0);
     var cgpaColor = getGPAColor(cgpa);
-    document.getElementById('cgpaDisplay').innerHTML       = included.length ? ('<i class="fa-solid ' + getStandingIcon(cgpa) + '" aria-hidden="true"></i>' + cgpa.toFixed(2)) : '—';
-    document.getElementById('cgpaDisplay').className         = 'value ' + cgpaColor;
+    document.getElementById('cgpaDisplay').innerHTML       = included.length ? ('<i class="fa-solid ' + getStandingIcon(cgpa) + '" aria-hidden="true"></i> Current CGPA: ' + cgpa.toFixed(2)) : 'Current CGPA: —';
+    document.getElementById('cgpaDisplay').className         = 'value compact ' + cgpaColor;
     document.getElementById('cgpaDisplay').setAttribute('aria-label', included.length ? ('CGPA ' + cgpa.toFixed(2) + ', ' + getStanding(cgpa)) : 'No CGPA yet');
+    document.getElementById('cgpaQualitative').textContent = included.length ? getCgpaQualitative(cgpa) : 'Add semesters to see this';
     document.getElementById('semesterCount').textContent     = semesters.length;
     document.getElementById('bestGPA').textContent           = best;
     document.getElementById('totalCoursesCount').textContent = tc;
