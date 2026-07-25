@@ -396,16 +396,16 @@
             </div>
             <div class="form-group">
                 <label class="auth-label"><i class="fa-solid fa-id-card" style="margin-right:5px;"></i>Matric Number</label>
-                <input class="auth-input" id="su-matric" type="text" placeholder="e.g. LCU/UG/23/26557">
+                <input class="auth-input" id="su-matric" type="text" placeholder="e.g. LCU/UG/23/26557" autocomplete="off" name="gg-matric-no-autofill">
             </div>
             <div class="form-row" style="margin-bottom:0;">
                 <div style="margin-bottom:12px;">
                     <label class="auth-label">Department</label>
-                    <input class="auth-input" id="su-dept" type="text" placeholder="e.g. Cybersecurity">
+                    <input class="auth-input" id="su-dept" type="text" placeholder="e.g. Cybersecurity" autocomplete="off" name="gg-dept-no-autofill">
                 </div>
                 <div style="margin-bottom:12px;">
                     <label class="auth-label">Faculty</label>
-                    <input class="auth-input" id="su-faculty" type="text" placeholder="e.g. Computing &amp; Applied Sciences">
+                    <input class="auth-input" id="su-faculty" type="text" placeholder="e.g. Computing &amp; Applied Sciences" autocomplete="off" name="gg-faculty-no-autofill">
                 </div>
             </div>
             <div class="form-row" style="margin-bottom:0;">
@@ -423,7 +423,7 @@
                 </div>
                 <div style="margin-bottom:12px;">
                     <label class="auth-label">Academic Session</label>
-                    <input class="auth-input" id="su-session" type="text" placeholder="e.g. 2023/2024">
+                    <input class="auth-input" id="su-session" type="text" placeholder="e.g. 2023/2024" autocomplete="off" name="gg-session-no-autofill">
                 </div>
             </div>
             <div class="form-group uni-search-wrap">
@@ -967,6 +967,7 @@ function toggleAuthMode() {
     document.getElementById('auth-toggle-btn').textContent  = isSignUp ? 'Sign In' : 'Sign Up';
     document.getElementById('signupNameFields').style.display = isSignUp ? 'block' : 'none';
     document.getElementById('signupAcademicFields').style.display = isSignUp ? 'block' : 'none';
+    document.getElementById('auth-password').setAttribute('autocomplete', isSignUp ? 'new-password' : 'current-password');
     document.getElementById('auth-error').style.display   = 'none';
     document.getElementById('auth-message').style.display = 'none';
     updatePasswordStrength();
@@ -1070,8 +1071,17 @@ async function handleAuth() {
                     localStorage.setItem('gg_pending_signup_profile_' + newUserId, JSON.stringify(pendingSignupProfile));
                 }
             } catch (e) { /* worst case, they just fill in the Profile tab manually after signing in */ }
-            showAuthMsg('Account created! Check your email to confirm, then sign in. Your details are saved and ready for you.');
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>';
+            // If Supabase's email confirmation requirement is off (or auto-confirm is on),
+            // signUp() returns an already-active session, and the auth listener above will pick
+            // it up and take the person straight into the app; no need to tell them to check an
+            // email that isn't coming. If confirmation IS required, there's no session yet, so
+            // they genuinely do need to check their inbox before signing in.
+            if (res.data && res.data.session) {
+                showAuthMsg("Account created! You're all set, taking you in now...");
+            } else {
+                showAuthMsg('Account created! Check your email to confirm, then sign in. Your details are saved and ready for you.');
+                btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>';
+            }
         }
     } else {
         var res = await sb.auth.signInWithPassword({ email: email, password: password });
