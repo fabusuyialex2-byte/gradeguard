@@ -358,6 +358,18 @@
         <p id="auth-sub">Sign in to access your grades</p>
         <div id="auth-error" class="auth-error"></div>
         <div id="auth-message" class="auth-message"></div>
+        <div id="signupNameFields" style="display:none;">
+            <div class="form-row" style="margin-bottom:0;">
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label"><i class="fa-solid fa-user" style="margin-right:5px;"></i>First Name</label>
+                    <input class="auth-input" id="su-firstname" type="text" placeholder="e.g. Joshua" autocomplete="given-name">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label"><i class="fa-solid fa-user" style="margin-right:5px;"></i>Last Name</label>
+                    <input class="auth-input" id="su-lastname" type="text" placeholder="e.g. Fabusuyi" autocomplete="family-name">
+                </div>
+            </div>
+        </div>
         <div>
             <label class="auth-label"><i class="fa-solid fa-envelope" style="margin-right:5px;"></i>Email</label>
             <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="username">
@@ -373,6 +385,49 @@
                     <div id="pwStrengthFill" style="height:100%;width:0%;background:#ef4444;transition:width 0.2s ease, background 0.2s ease;"></div>
                 </div>
                 <div id="pwStrengthLabel" style="font-size:11px;color:#94a3b8;margin-top:4px;"></div>
+            </div>
+        </div>
+        <div id="signupAcademicFields" style="display:none;">
+            <div class="form-group">
+                <label class="auth-label"><i class="fa-solid fa-id-card" style="margin-right:5px;"></i>Matric Number</label>
+                <input class="auth-input" id="su-matric" type="text" placeholder="e.g. LCU/UG/23/26557">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label">Department</label>
+                    <input class="auth-input" id="su-dept" type="text" placeholder="e.g. Cybersecurity">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label">Faculty</label>
+                    <input class="auth-input" id="su-faculty" type="text" placeholder="e.g. Computing &amp; Applied Sciences">
+                </div>
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label">Current Level</label>
+                    <select class="auth-input" id="su-level" style="margin-bottom:0;">
+                        <option value="">Select Level</option>
+                        <option value="100L">100 Level</option>
+                        <option value="200L">200 Level</option>
+                        <option value="300L">300 Level</option>
+                        <option value="400L">400 Level</option>
+                        <option value="500L">500 Level</option>
+                        <option value="600L">600 Level</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="auth-label">Academic Session</label>
+                    <input class="auth-input" id="su-session" type="text" placeholder="e.g. 2023/2024">
+                </div>
+            </div>
+            <div class="form-group uni-search-wrap">
+                <label class="auth-label">University</label>
+                <input class="auth-input" id="su-uni" type="text" placeholder="Start typing e.g. 'Lead' or 'Lagos'..." autocomplete="off" oninput="onSignupUniInput()" onfocus="onSignupUniInput()" onblur="setTimeout(function(){document.getElementById('su-uniDropdown').classList.remove('show')},150)">
+                <div class="uni-dropdown" id="su-uniDropdown"></div>
+            </div>
+            <div class="form-group">
+                <label class="auth-label">Total Semesters in Your Program</label>
+                <input class="auth-input" id="su-totalsemesters" type="number" placeholder="e.g. 8 for a 4-year program" min="1" max="14">
             </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">
@@ -900,10 +955,12 @@ function showAppScreen() {
 function toggleAuthMode() {
     isSignUp = !isSignUp;
     document.getElementById('auth-title').textContent       = isSignUp ? 'Create Account' : 'Welcome Back';
-    document.getElementById('auth-sub').textContent         = isSignUp ? 'Start tracking your grades' : 'Sign in to access your grades';
+    document.getElementById('auth-sub').textContent         = isSignUp ? 'Tell us a bit about yourself to get started' : 'Sign in to access your grades';
     document.getElementById('auth-btn-text').textContent    = isSignUp ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
     document.getElementById('auth-toggle-btn').textContent  = isSignUp ? 'Sign In' : 'Sign Up';
+    document.getElementById('signupNameFields').style.display = isSignUp ? 'block' : 'none';
+    document.getElementById('signupAcademicFields').style.display = isSignUp ? 'block' : 'none';
     document.getElementById('auth-error').style.display   = 'none';
     document.getElementById('auth-message').style.display = 'none';
     updatePasswordStrength();
@@ -972,13 +1029,44 @@ async function handleAuth() {
     if (!email || !password) { showAuthError('Please enter your email and password.'); return; }
     if (isSignUp && !isPasswordStrongEnough(password)) { showAuthError('Password must be at least 8 characters and include a letter and a number.'); return; }
     if (!isSignUp && password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+    var firstName = '', lastName = '';
+    if (isSignUp) {
+        firstName = document.getElementById('su-firstname').value.trim();
+        lastName  = document.getElementById('su-lastname').value.trim();
+        if (!firstName || !lastName) { showAuthError('Please enter your first and last name.'); return; }
+    }
     applySharedDevicePreference();
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Please wait...';
     if (isSignUp) {
         var res = await sb.auth.signUp({ email: email, password: password });
         if (res.error) { showAuthError(res.error.message); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>'; }
-        else { showAuthMsg('Account created! Check your email to confirm, then sign in.'); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>'; }
+        else {
+            // Stash everything collected on this form, keyed to the new account's id, so it's
+            // automatically applied to their profile the moment they're actually signed in
+            // (right away if email confirmation is off, or after they confirm and sign in for
+            // the first time if it's on). This is what lets sign-in stay just email + password
+            // afterward, with the profile already filled in from what they entered here.
+            try {
+                var newUserId = res.data && res.data.user && res.data.user.id;
+                if (newUserId) {
+                    var totalSemRaw = parseInt(document.getElementById('su-totalsemesters').value);
+                    var pendingSignupProfile = {
+                        name: (firstName + ' ' + lastName).trim(),
+                        matric: document.getElementById('su-matric').value.trim(),
+                        dept: document.getElementById('su-dept').value.trim(),
+                        faculty: document.getElementById('su-faculty').value.trim(),
+                        level: document.getElementById('su-level').value,
+                        session: document.getElementById('su-session').value.trim(),
+                        uni: document.getElementById('su-uni').value.trim(),
+                        totalSemesters: (!isNaN(totalSemRaw) && totalSemRaw > 0) ? totalSemRaw : null
+                    };
+                    localStorage.setItem('gg_pending_signup_profile_' + newUserId, JSON.stringify(pendingSignupProfile));
+                }
+            } catch (e) { /* worst case, they just fill in the Profile tab manually after signing in */ }
+            showAuthMsg('Account created! Check your email to confirm, then sign in. Your details are saved and ready for you.');
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>';
+        }
     } else {
         var res = await sb.auth.signInWithPassword({ email: email, password: password });
         if (res.error) { showAuthError(res.error.message); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign In</span>'; }
@@ -1148,6 +1236,27 @@ function selectUni(i) {
     if (!u) return;
     document.getElementById('profileUni').value = u[0];
     document.getElementById('uniDropdown').classList.remove('show');
+}
+
+// Same university search, standalone, for the sign-up form (separate element ids and its own
+// filtered-list variable so it doesn't interfere with the profile page's version above).
+var suUniFilteredList = [];
+function onSignupUniInput() {
+    var q = document.getElementById('su-uni').value.trim().toLowerCase();
+    var dd = document.getElementById('su-uniDropdown');
+    if (!q) { dd.classList.remove('show'); return; }
+    suUniFilteredList = NIGERIAN_UNIVERSITIES.filter(function(u) { return u[0].toLowerCase().indexOf(q) !== -1; }).slice(0, 8);
+    if (!suUniFilteredList.length) { dd.innerHTML = '<div class="uni-empty">No match, you can still type your university\'s full name manually.</div>'; dd.classList.add('show'); return; }
+    dd.innerHTML = suUniFilteredList.map(function(u, i) {
+        return '<div class="uni-option" onmousedown="selectSignupUni(' + i + ')"><div>' + u[0] + '</div><div class="uni-state">' + u[1] + ' State</div></div>';
+    }).join('');
+    dd.classList.add('show');
+}
+function selectSignupUni(i) {
+    var u = suUniFilteredList[i];
+    if (!u) return;
+    document.getElementById('su-uni').value = u[0];
+    document.getElementById('su-uniDropdown').classList.remove('show');
 }
 
 // ---- Advanced grading scale ----
@@ -1336,6 +1445,42 @@ async function processPendingQueue() {
     syncInProgress = false;
 }
 
+// Applies the profile details collected on the sign-up form, the moment the account is
+// actually signed in (immediately if email confirmation is off, or after confirming and signing
+// in for the first time if it's on). Only runs if this account has no saved profile yet, so it
+// can never clobber real edits made since signing up. Reuses the existing offline-safe pending
+// profile queue, so this works reliably even if the person is offline at the exact moment they
+// first sign in.
+function applyPendingSignupProfileIfAny() {
+    if (!currentUser) return;
+    try {
+        var key = 'gg_pending_signup_profile_' + currentUser.id;
+        var raw = localStorage.getItem(key);
+        if (!raw) return;
+        if (profile && profile.name) { localStorage.removeItem(key); return; }
+        var data = JSON.parse(raw);
+        profile = {
+            name: data.name || '', matric: data.matric || '', dept: data.dept || '',
+            faculty: data.faculty || '', level: data.level || '', session: data.session || '',
+            uni: data.uni || '', exclude100L: false, customScale: null,
+            totalSemesters: data.totalSemesters || null, participatePeerStats: false
+        };
+        var dbRow = {
+            id: currentUser.id, name: profile.name, matric: profile.matric, dept: profile.dept,
+            faculty: profile.faculty, level: profile.level, session: profile.session, uni: profile.uni,
+            exclude_100l: false, custom_scale: null, total_semesters: profile.totalSemesters,
+            participate_in_peer_stats: false
+        };
+        pendingProfile = dbRow;
+        savePendingState(); saveLocalCache();
+        loadProfileFields();
+        updateWelcomeBanner();
+        renderAll();
+        if (isOnline) processPendingQueue();
+        localStorage.removeItem(key);
+    } catch (e) { /* worst case, they just fill in the Profile tab manually */ }
+}
+
 // KEY FIX: onAuthStateChange — show app FIRST, load data in background
 sb.auth.onAuthStateChange(async function(event, session) {
     if (event === 'SIGNED_OUT') { showAuthScreen(); return; }
@@ -1352,6 +1497,7 @@ sb.auth.onAuthStateChange(async function(event, session) {
         setSyncStatus('loading');
         try {
             await loadData();
+            applyPendingSignupProfileIfAny();
             renderAll();
         } catch(e) {
             setSyncStatus('error');
