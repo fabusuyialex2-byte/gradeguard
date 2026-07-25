@@ -34,10 +34,12 @@
             position: fixed; inset: 0; z-index: 200;
             background: linear-gradient(135deg, #0a1020 0%, #0f172a 50%, #0a1628 100%);
             display: flex; align-items: center; justify-content: center; padding: 20px;
+            overflow-y: auto;
         }
         .auth-card {
             background: #1e293b; border: 1px solid #334155; border-radius: 20px;
             padding: 36px 32px; width: 100%; max-width: 420px;
+            margin: 20px 0;
             box-shadow: 0 24px 60px rgba(0,0,0,0.5);
         }
         .auth-logo { width: 52px; height: 52px; background: linear-gradient(135deg, #0284c7, #0f766e); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; margin: 0 auto 20px; }
@@ -388,6 +390,9 @@
             </div>
         </div>
         <div id="signupAcademicFields" style="display:none;">
+            <div style="border-top:1px solid #334155;margin:4px 0 18px;padding-top:16px;">
+                <div style="font-size:12px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:14px;">Academic Details</div>
+            </div>
             <div class="form-group">
                 <label class="auth-label"><i class="fa-solid fa-id-card" style="margin-right:5px;"></i>Matric Number</label>
                 <input class="auth-input" id="su-matric" type="text" placeholder="e.g. LCU/UG/23/26557">
@@ -452,7 +457,7 @@
 </div>
 
 <!-- PASSWORD RESET SCREEN -->
-<div id="reset-screen" style="position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#0a1020 0%,#0f172a 50%,#0a1628 100%);display:none;align-items:center;justify-content:center;padding:20px;">
+<div id="reset-screen" style="position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#0a1020 0%,#0f172a 50%,#0a1628 100%);display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
     <div class="auth-card">
         <div class="auth-logo"><i class="fa-solid fa-key"></i></div>
         <h2>Set New Password</h2>
@@ -954,8 +959,8 @@ function showAppScreen() {
 
 function toggleAuthMode() {
     isSignUp = !isSignUp;
-    document.getElementById('auth-title').textContent       = isSignUp ? 'Create Account' : 'Welcome Back';
-    document.getElementById('auth-sub').textContent         = isSignUp ? 'Tell us a bit about yourself to get started' : 'Sign in to access your grades';
+    document.getElementById('auth-title').textContent       = isSignUp ? 'Welcome to GradeGuard' : 'Welcome Back';
+    document.getElementById('auth-sub').textContent         = isSignUp ? 'Please fill in your details to get started' : 'Sign in to access your grades';
     document.getElementById('auth-btn-text').textContent    = isSignUp ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
     document.getElementById('auth-toggle-btn').textContent  = isSignUp ? 'Sign In' : 'Sign Up';
@@ -1481,6 +1486,26 @@ function applyPendingSignupProfileIfAny() {
     } catch (e) { /* worst case, they just fill in the Profile tab manually */ }
 }
 
+// Nudges a person to complete their profile the first time they're ever seen with none saved,
+// most commonly a Google sign-in, since Google only ever provides a name and email, never
+// academic details like matric number or level. Reuses the existing Profile tab rather than
+// building a separate form. Only fires once per account (tracked in localStorage) so it never
+// keeps interrupting someone who's deliberately chosen to leave their profile blank.
+function promptCompleteProfileIfNeeded() {
+    if (!currentUser) return;
+    if (profile && profile.name) return; // already has a profile, nothing to nudge
+    var flagKey = 'gg_profile_prompt_shown_' + currentUser.id;
+    try { if (localStorage.getItem(flagKey)) return; } catch (e) {}
+    try { localStorage.setItem(flagKey, '1'); } catch (e) {}
+    switchTab('profile');
+    var googleName = currentUser.user_metadata && (currentUser.user_metadata.full_name || currentUser.user_metadata.name);
+    if (googleName) {
+        var nameInput = document.getElementById('profileName');
+        if (nameInput && !nameInput.value) nameInput.value = googleName;
+    }
+    toast('Welcome to GradeGuard! Please fill in your details below to get started.', 'info', 7000);
+}
+
 // KEY FIX: onAuthStateChange — show app FIRST, load data in background
 sb.auth.onAuthStateChange(async function(event, session) {
     if (event === 'SIGNED_OUT') { showAuthScreen(); return; }
@@ -1498,6 +1523,7 @@ sb.auth.onAuthStateChange(async function(event, session) {
         try {
             await loadData();
             applyPendingSignupProfileIfAny();
+            promptCompleteProfileIfNeeded();
             renderAll();
         } catch(e) {
             setSyncStatus('error');
