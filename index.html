@@ -1049,36 +1049,62 @@ async function handleAuth() {
         var res = await sb.auth.signUp({ email: email, password: password });
         if (res.error) { showAuthError(res.error.message); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>'; }
         else {
-            // Stash everything collected on this form, keyed to the new account's id, so it's
-            // automatically applied to their profile the moment they're actually signed in
-            // (right away if email confirmation is off, or after they confirm and sign in for
-            // the first time if it's on). This is what lets sign-in stay just email + password
-            // afterward, with the profile already filled in from what they entered here.
-            try {
-                var newUserId = res.data && res.data.user && res.data.user.id;
-                if (newUserId) {
-                    var totalSemRaw = parseInt(document.getElementById('su-totalsemesters').value);
-                    var pendingSignupProfile = {
-                        name: (firstName + ' ' + lastName).trim(),
-                        matric: document.getElementById('su-matric').value.trim(),
-                        dept: document.getElementById('su-dept').value.trim(),
-                        faculty: document.getElementById('su-faculty').value.trim(),
-                        level: document.getElementById('su-level').value,
-                        session: document.getElementById('su-session').value.trim(),
-                        uni: document.getElementById('su-uni').value.trim(),
-                        totalSemesters: (!isNaN(totalSemRaw) && totalSemRaw > 0) ? totalSemRaw : null
-                    };
-                    localStorage.setItem('gg_pending_signup_profile_' + newUserId, JSON.stringify(pendingSignupProfile));
-                }
-            } catch (e) { /* worst case, they just fill in the Profile tab manually after signing in */ }
-            // If Supabase's email confirmation requirement is off (or auto-confirm is on),
-            // signUp() returns an already-active session, and the auth listener above will pick
-            // it up and take the person straight into the app; no need to tell them to check an
-            // email that isn't coming. If confirmation IS required, there's no session yet, so
-            // they genuinely do need to check their inbox before signing in.
+            var totalSemRaw = parseInt(document.getElementById('su-totalsemesters').value);
+            var collectedProfile = {
+                name: (firstName + ' ' + lastName).trim(),
+                matric: document.getElementById('su-matric').value.trim(),
+                dept: document.getElementById('su-dept').value.trim(),
+                faculty: document.getElementById('su-faculty').value.trim(),
+                level: document.getElementById('su-level').value,
+                session: document.getElementById('su-session').value.trim(),
+                uni: document.getElementById('su-uni').value.trim(),
+                totalSemesters: (!isNaN(totalSemRaw) && totalSemRaw > 0) ? totalSemRaw : null
+            };
+            var newUserId = res.data && res.data.user && res.data.user.id;
             if (res.data && res.data.session) {
+                // Confirmation is off (or auto-confirm is on) — signUp() has already returned an
+                // active session, which means the onAuthStateChange listener below either has
+                // already fired, or is about to, essentially at the same moment this code runs.
+                // Earlier this stashed the collected profile to localStorage and relied on that
+                // listener to pick it up afterward — but there's no guaranteed ordering between
+                // "this code finishes running" and "the listener's own async chain finishes
+                // running", so the listener could load an empty profile before the localStorage
+                // write ever happened, and never look again. Applying the profile directly and
+                // synchronously here, in the same breath as the signup itself, removes the race
+                // entirely rather than depending on timing between two independent async flows.
+                currentUser = res.data.user;
+                profile = {
+                    name: collectedProfile.name, matric: collectedProfile.matric, dept: collectedProfile.dept,
+                    faculty: collectedProfile.faculty, level: collectedProfile.level, session: collectedProfile.session,
+                    uni: collectedProfile.uni, exclude100L: false, customScale: null,
+                    totalSemesters: collectedProfile.totalSemesters, participatePeerStats: false
+                };
+                var dbRow = {
+                    id: currentUser.id, name: profile.name, matric: profile.matric, dept: profile.dept,
+                    faculty: profile.faculty, level: profile.level, session: profile.session, uni: profile.uni,
+                    exclude_100l: false, custom_scale: null, total_semesters: profile.totalSemesters,
+                    participate_in_peer_stats: false
+                };
+                pendingProfile = dbRow;
+                savePendingState(); saveLocalCache();
+                loadProfileFields();
+                updateWelcomeBanner();
+                renderAll();
+                // Also clear any stale localStorage stash for this id, in case a retry earlier
+                // left one behind — the profile is already applied directly above, so there's
+                // nothing left for applyPendingSignupProfileIfAny() to do for this account.
+                try { localStorage.removeItem('gg_pending_signup_profile_' + currentUser.id); } catch (e) {}
                 showAuthMsg("Account created! You're all set, taking you in now...");
             } else {
+                // Confirmation IS required — there's a genuine time gap before this person is
+                // ever actually signed in (they have to go click the email link first, possibly
+                // much later), so stashing to localStorage and picking it up on that future
+                // sign-in is the right approach here; no race to worry about in this branch.
+                try {
+                    if (newUserId) {
+                        localStorage.setItem('gg_pending_signup_profile_' + newUserId, JSON.stringify(collectedProfile));
+                    }
+                } catch (e) { /* worst case, they just fill in the Profile tab manually after signing in */ }
                 showAuthMsg('Account created! Check your email to confirm, then sign in. Your details are saved and ready for you.');
                 btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-text">Sign Up</span>';
             }
@@ -1467,6 +1493,12 @@ async function processPendingQueue() {
 // can never clobber real edits made since signing up. Reuses the existing offline-safe pending
 // profile queue, so this works reliably even if the person is offline at the exact moment they
 // first sign in.
+//
+// NOTE: this is now only the fallback path for the "confirmation required" case, where a real
+// time gap exists between signing up and actually being signed in (they have to go click the
+// email link first). For the "confirmation off, signed in immediately" case, the profile is
+// now applied directly inside handleAuth() itself, synchronously, to avoid a race between that
+// code and this listener (see the comment in handleAuth() for the full explanation).
 function applyPendingSignupProfileIfAny() {
     if (!currentUser) return;
     try {
