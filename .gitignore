@@ -11,6 +11,9 @@ __pycache__/
 supabase/.temp/
 deploy/
 
+# Legacy Flask prototype data (personal records, not needed by the live app)
+data/
+
 # Archives
 *.zip
 
