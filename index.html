@@ -270,14 +270,18 @@
         .tour-mask { position: fixed; inset: 0; z-index: 500; display: none; }
         .tour-mask.show { display: block; }
         .tour-highlight { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(2,6,20,0.78); border: 2px solid var(--accent); z-index: 501; opacity: 0; transition: top 0.35s ease, left 0.35s ease, width 0.35s ease, height 0.35s ease, opacity 0.25s ease; pointer-events: none; top: 50%; left: 50%; width: 0; height: 0; }
-        .tour-tooltip { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 502; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; width: min(360px, calc(100vw - 32px)); box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+        .tour-highlight.instant { transition: opacity 0.25s ease; }
+        .tour-tooltip { position: fixed; left: 50%; top: auto; bottom: 20px; transform: translateX(-50%); z-index: 502; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; width: min(360px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
         .tour-step-count { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
         .tour-tooltip h4 { font-size: 15px; color: var(--text); margin-bottom: 6px; }
         .tour-tooltip p { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
         .tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .tour-actions-right { display: flex; align-items: center; gap: 8px; }
         .tour-skip { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; padding: 6px; }
+        .tour-back { background: none; border: 1px solid var(--border); color: var(--text2); padding: 8px 14px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .tour-next { background: linear-gradient(135deg, var(--accent2), #0f766e); color: white; border: none; padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
-        @media(max-width:768px) { .tour-tooltip { bottom: 84px; } }
+        .tour-skip:focus-visible, .tour-back:focus-visible, .tour-next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .tour-highlight, .tour-highlight.instant { transition: none; } }
         .bottom-nav { display: none; }
         @media(max-width:768px) {
             .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; background: var(--card); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.25); }
@@ -709,13 +713,16 @@
 
 <div class="tour-mask" id="tourMask">
     <div class="tour-highlight" id="tourHighlight"></div>
-    <div class="tour-tooltip" id="tourTooltip">
-        <div class="tour-step-count" id="tourStepCount">Step 1 of 7</div>
+    <div class="tour-tooltip" id="tourTooltip" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText">
+        <div class="tour-step-count" id="tourStepCount" aria-live="polite">Step 1 of 7</div>
         <h4 id="tourTitle">Title</h4>
         <p id="tourText">Text</p>
         <div class="tour-actions">
-            <button class="tour-skip" onclick="endTour()">Skip tour</button>
-            <button class="tour-next" id="tourNextBtn" onclick="nextTourStep()">Next</button>
+            <button class="tour-skip" type="button" onclick="endTour()">Skip tour</button>
+            <div class="tour-actions-right">
+                <button class="tour-back" type="button" id="tourBackBtn" onclick="prevTourStep()">Back</button>
+                <button class="tour-next" type="button" id="tourNextBtn" onclick="nextTourStep()">Next</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1139,6 +1146,7 @@ async function handleSignOut() {
     }
     await sb.auth.signOut();
     semesters = []; profile = {}; goals = []; currentUser = null;
+    teardownSession();
     if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
     showAuthScreen();
 }
@@ -1154,7 +1162,18 @@ function setSyncStatus(status) {
 }
 
 // ---- Onboarding tour (first-time walkthrough) ----
-var TOUR_STEPS = [
+// How it fits together:
+//  * The tour only ever starts from onAppReady(), which runs once per sign-in AFTER the dashboard
+//    data has loaded, so every target already has its final size and position.
+//  * "Done" is remembered per person and per tour version: gg_tour_done_v3_<userId>. It lives in
+//    whichever storage the shared-device setting picked (sessionStorage on a shared computer, so
+//    nothing is left behind there).
+//  * Steps whose target is missing or hidden (for example Peer Comparison while offline) are
+//    dropped instead of highlighting an empty spot.
+var TOUR_VERSION = 'v3';
+var TOUR_LEGACY_KEY = 'gg_tour_done_v2'; // old flag: one shared value per browser, no user id
+
+var TOUR_ALL_STEPS = [
     { tab: 'dashboard', selector: '.header-left', title: 'Welcome to GradeGuard! 👋', text: "Let's do a quick tour so you know exactly where everything is. Tap Next to continue, or Skip tour any time." },
     { tab: 'dashboard', selector: '.stats-grid', title: 'Your Dashboard', text: 'This is your home base: your CGPA, semester count, best GPA, and total courses update automatically every time you add a semester.' },
     { tab: 'dashboard', selector: '.standing-card', title: 'Class Standing', text: 'This bar shows exactly where you sit: Pass, Third Class, Second Class, or First Class, based on your current CGPA.' },
@@ -1168,15 +1187,83 @@ var TOUR_STEPS = [
     { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list. This personalizes GradeGuard for your institution." },
     { tab: 'profile', selector: '.switch-row', title: '100L doesn\'t always count', text: "Some universities don't count your first year toward final CGPA. If yours doesn't, flip this on." },
 ];
-var tourIdx = 0;
-var tourResizeHandler = null;
 
+var tourSteps = [];          // the steps actually playable right now (missing targets removed)
+var tourIdx = 0;
+var tourActive = false;
+var tourToken = 0;           // bumped on every step change, so a late layout callback for an old step is ignored
+var tourTarget = null;
+var tourObserver = null;
+var tourLayoutQueued = false;
+var tourLastWidth = 0;
+var tourStartTimer = null;
+var tourReturnTab = 'dashboard';
+var tourReturnScroll = 0;
+var tourReturnFocus = null;
+
+// ---- Completion flag ----
+function tourDoneKey() { return 'gg_tour_done_' + TOUR_VERSION + '_' + (currentUser ? currentUser.id : 'anon'); }
+function markTourDone() {
+    try { storageBackend().setItem(tourDoneKey(), '1'); } catch (e) {}
+}
+function isTourDone() {
+    try { if (storageBackend().getItem(tourDoneKey())) return true; } catch (e) {}
+    // The old flag was one value for the whole browser. Honour it only for someone who already has
+    // semesters (so existing users are not made to repeat the tour). A brand-new account on a
+    // browser that an earlier account finished the tour on will correctly see it.
+    try {
+        if (semesters.length > 0 && localStorage.getItem(TOUR_LEGACY_KEY)) { markTourDone(); return true; }
+    } catch (e) {}
+    return false;
+}
+
+// ---- Target checks ----
+// True when el and every ancestor up to (not including) stopAt are displayed.
+function tourChainVisible(el, stopAt) {
+    for (var n = el; n && n !== stopAt && n !== document.documentElement; n = n.parentElement) {
+        if (getComputedStyle(n).display === 'none') return false;
+    }
+    return true;
+}
+function tourHasSize(el) {
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+}
+// Steps whose element exists and is not hidden by its own markup. Tabs are ignored here because the
+// tour switches to the right tab itself; a final check runs when each step is shown.
+function buildTourSteps() {
+    return TOUR_ALL_STEPS.filter(function(step) {
+        var el = document.querySelector(step.selector);
+        return !!el && tourChainVisible(el, el.closest('.tab-page'));
+    });
+}
+
+// ---- Starting and stopping ----
+// Returns true if the tour actually started.
 function startTour(manual) {
+    if (tourActive) return false;
+    var appScreen = document.getElementById('app-screen');
+    if (!currentUser || !appScreen || appScreen.style.display === 'none') return false;
+    if (document.querySelector('.modal-overlay.show')) return false; // never stack on top of another dialog
+    clearTimeout(tourStartTimer);
+    tourSteps = buildTourSteps();
+    if (!tourSteps.length) return false;
+    tourActive = true;
     tourIdx = 0;
+    var activePage = document.querySelector('.tab-page.active');
+    tourReturnTab = activePage ? activePage.id.replace('page-', '') : 'dashboard';
+    tourReturnScroll = window.scrollY;
+    tourReturnFocus = document.activeElement;
+    tourLastWidth = window.innerWidth;
     document.getElementById('tourMask').classList.add('show');
-    showTourStep();
+    document.addEventListener('keydown', onTourKey, true);
+    window.addEventListener('resize', onTourResize);
+    window.addEventListener('scroll', queueTourLayout, { passive: true });
+    showTourStep(1);
+    return true;
 }
 function askReplayTour() {
+    if (tourActive) return;
     document.getElementById('tourConfirmModal').classList.add('show');
 }
 function cancelReplayTour() {
@@ -1186,51 +1273,182 @@ function confirmReplayTour() {
     document.getElementById('tourConfirmModal').classList.remove('show');
     startTour(true);
 }
-function endTour() {
-    document.getElementById('tourMask').classList.remove('show');
-    try { localStorage.setItem('gg_tour_done_v2', '1'); } catch(e) {}
-    if (tourResizeHandler) { window.removeEventListener('resize', tourResizeHandler); tourResizeHandler = null; }
+// silent = true tears the tour down without recording it as finished (used on sign-out).
+function endTour(silent) {
+    var mask = document.getElementById('tourMask');
+    if (!tourActive) { mask.classList.remove('show'); return; }
+    tourActive = false;
+    tourToken++;
+    mask.classList.remove('show');
+    var box = document.getElementById('tourHighlight');
+    box.style.opacity = '0';
+    document.removeEventListener('keydown', onTourKey, true);
+    window.removeEventListener('resize', onTourResize);
+    window.removeEventListener('scroll', queueTourLayout);
+    if (tourObserver) { tourObserver.disconnect(); tourObserver = null; }
+    tourTarget = null;
+    if (silent) return;
+    markTourDone();
+    // A person who still needs to finish their profile (typically a Google sign-up) goes straight
+    // there. Everyone else goes back to the tab and scroll position they were on.
+    if (appLoadedOk && profileNeedsPrompt()) {
+        promptCompleteProfileIfNeeded();
+        return;
+    }
+    activateTab(tourReturnTab);
+    window.scrollTo(0, tourReturnScroll);
+    try { if (tourReturnFocus && document.contains(tourReturnFocus) && tourReturnFocus !== document.body) tourReturnFocus.focus({ preventScroll: true }); } catch (e) {}
 }
 function nextTourStep() {
+    if (!tourActive) return;
+    if (tourIdx >= tourSteps.length - 1) { endTour(); return; }
     tourIdx++;
-    if (tourIdx >= TOUR_STEPS.length) { endTour(); return; }
-    showTourStep();
+    showTourStep(1);
 }
-function showTourStep() {
-    var step = TOUR_STEPS[tourIdx];
+function prevTourStep() {
+    if (!tourActive || tourIdx <= 0) return;
+    tourIdx--;
+    showTourStep(-1);
+}
+
+// ---- Showing a step ----
+// dir is the direction of travel (1 forward, -1 back) so a step that has to be dropped moves on the right way.
+function showTourStep(dir) {
+    var token = ++tourToken;
+    var step = tourSteps[tourIdx];
     activateTab(step.tab);
-    document.getElementById('tourStepCount').textContent = 'Step ' + (tourIdx + 1) + ' of ' + TOUR_STEPS.length;
+    var el = document.querySelector(step.selector);
+    if (!el || !tourChainVisible(el, null) || !tourHasSize(el)) {
+        // Target is not there right now: remove the step for this run and carry on.
+        tourSteps.splice(tourIdx, 1);
+        if (!tourSteps.length || tourIdx >= tourSteps.length && dir > 0) { endTour(); return; }
+        if (dir < 0 && tourIdx > 0) tourIdx--;
+        showTourStep(dir);
+        return;
+    }
+    var last = tourIdx === tourSteps.length - 1;
+    document.getElementById('tourStepCount').textContent = 'Step ' + (tourIdx + 1) + ' of ' + tourSteps.length;
     document.getElementById('tourTitle').textContent = step.title;
     document.getElementById('tourText').textContent = step.text;
-    document.getElementById('tourNextBtn').textContent = (tourIdx === TOUR_STEPS.length - 1) ? "Got it, let's go!" : 'Next';
-    document.getElementById('tourHighlight').style.opacity = '0';
-    positionHighlight(step.selector);
-    if (!tourResizeHandler) {
-        tourResizeHandler = function() { positionHighlight(TOUR_STEPS[tourIdx].selector); };
-        window.addEventListener('resize', tourResizeHandler);
+    document.getElementById('tourNextBtn').textContent = last ? "Got it, let's go!" : 'Next';
+    document.getElementById('tourBackBtn').style.display = tourIdx === 0 ? 'none' : '';
+    var box = document.getElementById('tourHighlight');
+    box.classList.remove('instant');
+    box.style.opacity = '0';
+    tourTarget = el;
+    if (tourObserver) tourObserver.disconnect();
+    if (window.ResizeObserver) {
+        tourObserver = new ResizeObserver(queueTourLayout);
+        tourObserver.observe(el);
+        var container = document.querySelector('.container');
+        if (container) tourObserver.observe(container);
+    }
+    placeTourStep(token, true);
+    // One more pass shortly after, for content that settles late (fonts, icons).
+    setTimeout(function() { if (tourActive && token === tourToken) placeTourStep(token, false); }, 150);
+    try { document.getElementById('tourNextBtn').focus({ preventScroll: true }); } catch (e) {}
+}
+
+// Scrolls the target into a good spot (when doScroll), draws the highlight around it, and puts the
+// tooltip below it, above it, or (only for targets taller than the screen) docked at the bottom.
+function placeTourStep(token, doScroll) {
+    var el = tourTarget;
+    if (!tourActive || !el || token !== tourToken) return;
+    var box = document.getElementById('tourHighlight');
+    var tip = document.getElementById('tourTooltip');
+    var vh = window.innerHeight;
+    var PAD = 8, GAP = 12;
+    var header = document.querySelector('header');
+    var topLimit = (header ? header.getBoundingClientRect().bottom : 0) + 8;
+    var nav = document.querySelector('.bottom-nav');
+    var navShown = nav && getComputedStyle(nav).display !== 'none';
+    var bottomLimit = vh - (navShown ? nav.offsetHeight : 0) - 8;
+    var th = tip.offsetHeight;
+    var inHeader = !!el.closest('header'); // the header is sticky, so there is nothing to scroll to
+
+    if (doScroll && !inHeader) {
+        var r0 = el.getBoundingClientRect();
+        var avail = bottomLimit - topLimit;
+        var delta = (r0.height + th + GAP + PAD <= avail)
+            ? r0.top - (topLimit + (avail - (r0.height + th + GAP + PAD)) / 2) // fits: centre target and tooltip together
+            : r0.top - topLimit;                                                // too tall: start at the top
+        window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: 'auto' });
+    }
+
+    if (!tourHasSize(el)) { box.style.opacity = '0'; return; }
+    var r = el.getBoundingClientRect();
+    var hTop = Math.max(r.top - PAD, 0), hBottom = Math.min(r.bottom + PAD, vh);
+    var hLeft = Math.max(r.left - PAD, 0), hRight = Math.min(r.right + PAD, window.innerWidth);
+    box.style.top = hTop + 'px';
+    box.style.left = hLeft + 'px';
+    box.style.width = Math.max(hRight - hLeft, 0) + 'px';
+    box.style.height = Math.max(hBottom - hTop, 0) + 'px';
+    box.style.opacity = '1';
+
+    var below = bottomLimit - (r.bottom + PAD);
+    var above = (r.top - PAD) - topLimit;
+    if (below >= th + GAP) {
+        tip.style.top = (r.bottom + PAD + GAP) + 'px'; tip.style.bottom = 'auto';
+    } else if (above >= th + GAP) {
+        tip.style.top = (r.top - PAD - GAP - th) + 'px'; tip.style.bottom = 'auto';
+    } else {
+        tip.style.top = 'auto'; tip.style.bottom = (vh - bottomLimit) + 'px';
     }
 }
-// Scrolls instantly (no animation to race against), waits one paint cycle, then measures.
-function positionHighlight(selector) {
-    var el = document.querySelector(selector);
-    var box = document.getElementById('tourHighlight');
-    if (!el) { box.style.opacity = '0'; return; }
-    el.scrollIntoView({ block: 'center', behavior: 'auto' });
+
+// Cheap re-measure (no scrolling) for scroll, content-size changes and small resizes.
+function queueTourLayout() {
+    if (!tourActive || tourLayoutQueued) return;
+    tourLayoutQueued = true;
     requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-            var r = el.getBoundingClientRect();
-            box.style.opacity = '1';
-            box.style.top = (r.top - 8) + 'px';
-            box.style.left = (r.left - 8) + 'px';
-            box.style.width = (r.width + 16) + 'px';
-            box.style.height = (r.height + 16) + 'px';
-        });
+        tourLayoutQueued = false;
+        if (!tourActive) return;
+        document.getElementById('tourHighlight').classList.add('instant');
+        placeTourStep(tourToken, false);
     });
 }
-function maybeAutoStartTour() {
-    var seen = false;
-    try { seen = !!localStorage.getItem('gg_tour_done_v2'); } catch(e) {}
-    if (!seen) setTimeout(function() { startTour(false); }, 900);
+// Mobile browsers fire resize when the address bar hides while scrolling, so only a change in width
+// (rotation, window resize) re-scrolls to the target. Height-only changes just re-measure.
+function onTourResize() {
+    if (!tourActive) return;
+    if (window.innerWidth !== tourLastWidth) {
+        tourLastWidth = window.innerWidth;
+        document.getElementById('tourHighlight').classList.add('instant');
+        placeTourStep(tourToken, true);
+    } else {
+        queueTourLayout();
+    }
+}
+function onTourKey(e) {
+    if (!tourActive) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); endTour(); return; }
+    if (e.key === 'Tab') {
+        // Keep keyboard focus inside the tour card while it is open.
+        var btns = [document.querySelector('.tour-skip'), document.getElementById('tourBackBtn'), document.getElementById('tourNextBtn')]
+            .filter(function(b) { return b && b.style.display !== 'none'; });
+        var i = btns.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); btns[btns.length - 1].focus(); }
+        else if (!e.shiftKey && (i === -1 || i === btns.length - 1)) { e.preventDefault(); btns[0].focus(); }
+    }
+}
+
+// ---- Automatic first-run start ----
+// Called once the dashboard has loaded. Returns true when a tour is queued to start, which tells
+// the caller to hold the "complete your profile" prompt until the tour is over.
+function scheduleAutoTour(loadedOk) {
+    clearTimeout(tourStartTimer);
+    if (isTourDone()) return false;
+    var uid = currentUser && currentUser.id;
+    var fontsReady = (document.fonts && document.fonts.ready)
+        ? Promise.race([document.fonts.ready, new Promise(function(r) { setTimeout(r, 1500); })])
+        : Promise.resolve();
+    fontsReady.then(function() {
+        tourStartTimer = setTimeout(function() {
+            if (!currentUser || currentUser.id !== uid) return; // signed out or switched account meanwhile
+            if (!startTour(false) && loadedOk) promptCompleteProfileIfNeeded();
+        }, 400);
+    });
+    return true;
 }
 
 // ---- Toast notifications (replaces alert()) ----
@@ -1534,12 +1752,20 @@ function applyPendingSignupProfileIfAny() {
 // academic details like matric number or level. Reuses the existing Profile tab rather than
 // building a separate form. Only fires once per account (tracked in localStorage) so it never
 // keeps interrupting someone who's deliberately chosen to leave their profile blank.
+//
+// Order for a first-time Google user: the quick tour plays first (it never gets pulled away to
+// another tab), and when it ends, by finishing or skipping, they land here on the Profile tab.
+// Someone who has already done the tour gets this straight after the dashboard loads.
+function profileFlagKey() { return 'gg_profile_prompt_shown_' + currentUser.id; }
+function profileNeedsPrompt() {
+    if (!currentUser) return false;
+    if (profile && profile.name) return false; // already has a profile, nothing to nudge
+    try { if (localStorage.getItem(profileFlagKey())) return false; } catch (e) {}
+    return true;
+}
 function promptCompleteProfileIfNeeded() {
-    if (!currentUser) return;
-    if (profile && profile.name) return; // already has a profile, nothing to nudge
-    var flagKey = 'gg_profile_prompt_shown_' + currentUser.id;
-    try { if (localStorage.getItem(flagKey)) return; } catch (e) {}
-    try { localStorage.setItem(flagKey, '1'); } catch (e) {}
+    if (!profileNeedsPrompt()) return;
+    try { localStorage.setItem(profileFlagKey(), '1'); } catch (e) {}
     switchTab('profile');
     var googleName = currentUser.user_metadata && (currentUser.user_metadata.full_name || currentUser.user_metadata.name);
     if (googleName) {
@@ -1549,32 +1775,67 @@ function promptCompleteProfileIfNeeded() {
     toast('Welcome to GradeGuard! Please fill in your details below to get started.', 'info', 7000);
 }
 
-// KEY FIX: onAuthStateChange — show app FIRST, load data in background
-sb.auth.onAuthStateChange(async function(event, session) {
-    if (event === 'SIGNED_OUT') { showAuthScreen(); return; }
+// ---- Auth state handling ----
+// Supabase fires onAuthStateChange more than once for the SAME signed-in person: on page load, after
+// sign-in, whenever the tab regains focus (SIGNED_IN again), and on every token refresh. The full
+// start-up (show the app, reset the Add Semester form, load data, start the tour) must run once per
+// sign-in, not once per event, otherwise each event wipes whatever the student was typing and
+// restarts the tour. bootedUserId remembers whose session the app has already been set up for.
+var bootedUserId = null;
+var appLoadedOk = false; // true once this sign-in's data load finished without an error
+
+function teardownSession() {
+    bootedUserId = null;
+    appLoadedOk = false;
+    clearTimeout(tourStartTimer);
+    endTour(true);
+}
+
+sb.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_OUT') { teardownSession(); showAuthScreen(); return; }
     if (event === 'PASSWORD_RECOVERY') { showResetScreen(); return; }
     if (session && session.user) {
-        currentUser = session.user;
-        document.getElementById('user-email-display').textContent = currentUser.email;
-        // Show app immediately — no waiting
-        showAppScreen();
-        initCourseRows();
-        renderAll();
-        maybeAutoStartTour();
-        // Load data in background
-        setSyncStatus('loading');
-        try {
-            await loadData();
-            applyPendingSignupProfileIfAny();
-            promptCompleteProfileIfNeeded();
-            renderAll();
-        } catch(e) {
-            setSyncStatus('error');
-        }
+        var firstEventForThisUser = bootedUserId !== session.user.id;
+        currentUser = session.user; // keep the freshest user object on every event
+        if (!firstEventForThisUser) return; // repeat event (refocus, token refresh): nothing to redo
+        bootedUserId = session.user.id;
+        // Run the heavy work outside the callback. Supabase recommends this because awaiting other
+        // Supabase calls inside onAuthStateChange can stall.
+        var uid = session.user.id;
+        setTimeout(function() { bootApp(uid); }, 0);
     } else {
+        teardownSession();
         showAuthScreen();
     }
 });
+
+// Show app FIRST, load data in background (same behaviour as before, just once per sign-in).
+async function bootApp(uid) {
+    if (!currentUser || currentUser.id !== uid) return;
+    document.getElementById('user-email-display').textContent = currentUser.email;
+    showAppScreen();
+    initCourseRows();
+    renderAll();
+    setSyncStatus('loading');
+    appLoadedOk = false;
+    try {
+        await loadData();
+        applyPendingSignupProfileIfAny();
+        renderAll();
+        appLoadedOk = true;
+    } catch (e) {
+        setSyncStatus('error');
+    }
+    if (!currentUser || currentUser.id !== uid) return; // signed out while loading
+    onAppReady();
+}
+
+// The dashboard has its real content now. Offer the tour first; if it is not going to run, go
+// straight to the profile prompt.
+function onAppReady() {
+    if (scheduleAutoTour(appLoadedOk)) return;
+    if (appLoadedOk) promptCompleteProfileIfNeeded();
+}
 
 async function loadData() {
     loadPendingState();
