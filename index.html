@@ -1165,7 +1165,8 @@ function setSyncStatus(status) {
 // How it fits together:
 //  * The tour only ever starts from onAppReady(), which runs once per sign-in AFTER the dashboard
 //    data has loaded, so every target already has its final size and position.
-//  * "Done" is remembered per person and per tour version: gg_tour_done_v3_<userId>. It lives in
+//  * "Seen" (stored under the historical name "done") is remembered per person and per tour version:
+//    gg_tour_done_v3_<userId>. It is written when the tour STARTS, not when it ends. It lives in
 //    whichever storage the shared-device setting picked (sessionStorage on a shared computer, so
 //    nothing is left behind there).
 //  * Steps whose target is missing or hidden (for example Peer Comparison while offline) are
@@ -1184,7 +1185,7 @@ var TOUR_ALL_STEPS = [
     { tab: 'insights', selector: '.main-grid', title: 'GPA Trend & Weak Courses', text: "Watch your GPA trend over time, and see which courses are dragging it down so you know exactly what to focus on." },
     { tab: 'insights', selector: '#exportActionsRow', title: 'Show off your progress', text: 'Once you\'ve added a semester, hit "Export PDF" any time for a clean, shareable transcript-style document of your academic record.' },
     { tab: 'calculator', selector: '#page-calculator .card', title: 'Target GPA Calculator', text: 'Not sure what grades you need to graduate with First Class or Second Class Upper? Enter your numbers here and GradeGuard tells you exactly what GPA you need per semester.' },
-    { tab: 'profile', selector: '.uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list. This personalizes GradeGuard for your institution." },
+    { tab: 'profile', selector: '#page-profile .uni-search-wrap', title: 'Set your university', text: "Start typing your school's name and pick it from the list. This personalizes GradeGuard for your institution." },
     { tab: 'profile', selector: '.switch-row', title: '100L doesn\'t always count', text: "Some universities don't count your first year toward final CGPA. If yours doesn't, flip this on." },
 ];
 
@@ -1260,6 +1261,11 @@ function startTour(manual) {
     window.addEventListener('resize', onTourResize);
     window.addEventListener('scroll', queueTourLayout, { passive: true });
     showTourStep(1);
+    // Mark the tour as seen the moment it is on screen, so a refresh, a closed tab or leaving
+    // halfway never makes it start again by itself. Replaying from Help still works (manual start
+    // does not check the flag). Runs only after the tour really opened (every early return above
+    // is before this line), and uses the same per-user, shared-device-aware key as before.
+    markTourDone();
     return true;
 }
 function askReplayTour() {
