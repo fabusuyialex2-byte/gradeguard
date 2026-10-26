@@ -552,6 +552,7 @@
                 <div class="card-title"><div class="icon-circle" style="background:rgba(56,189,248,0.12);color:var(--accent);"><i class="fa-solid fa-chart-area"></i></div><h2>GPA Trend</h2></div>
                 <div class="chart-container"><canvas id="gpaChart"></canvas></div>
                 <div id="noChartMsg" style="text-align:center;color:var(--text3);font-size:13px;padding:20px;"><i class="fa-solid fa-chart-line" style="font-size:28px;margin-bottom:8px;display:block;opacity:0.3;"></i>Add at least 2 semesters to see your trend</div>
+                <div id="chartStatus" role="status" aria-live="polite" style="display:none;text-align:center;color:var(--text3);font-size:13px;padding:20px;"></div>
                 <div id="gpaProjection"></div>
             </div>
             <div class="card">
@@ -844,29 +845,66 @@ function escapeHtml(str) {
 // upfront for everyone, we fetch them on demand the first time they're actually needed, and
 // cache the in-flight Promise so a second call while still loading doesn't refetch.
 var _scriptLoadCache = {};
-function loadScript(url) {
+// A request that fails outright rejects straight away. One that simply never answers (a stalled
+// connection) used to leave the promise pending forever; now it gives up after LIBRARY_LOAD_TIMEOUT_MS,
+// removes the half-loaded tag and clears the cache entry so the next attempt starts completely fresh.
+// Removing the tag does not cancel the browser's stuck request, and asking for the exact same URL
+// again can attach to that same stuck request. So after a timeout, the next attempt asks for the
+// same file with a different query string, which is always a genuinely new request.
+var LIBRARY_LOAD_TIMEOUT_MS = 15000;
+// loadScript(url, isReady): isReady is an optional check run once the file has loaded. A file can
+// arrive "successfully" and still not be the library (an ad-blocker, a content filter or a Wi-Fi
+// login page can answer 200 with an empty or unrelated file). Without this check that looked like
+// success, the caller tried again, got the same instant "success", and looped until the tab froze.
+// A file that fails the check is treated as a failed load.
+var _scriptTimedOut = {};
+function loadScript(url, isReady) {
     if (_scriptLoadCache[url]) return _scriptLoadCache[url];
     _scriptLoadCache[url] = new Promise(function(resolve, reject) {
         var s = document.createElement('script');
-        s.src = url;
-        s.onload = resolve;
-        s.onerror = function() { delete _scriptLoadCache[url]; reject(new Error('Failed to load ' + url)); };
+        var timer = setTimeout(function() {
+            _scriptTimedOut[url] = (_scriptTimedOut[url] || 0) + 1;
+            delete _scriptLoadCache[url];
+            if (s.parentNode) s.parentNode.removeChild(s);
+            var err = new Error('Timed out loading ' + url);
+            err.timedOut = true;
+            reject(err);
+        }, LIBRARY_LOAD_TIMEOUT_MS);
+        s.src = _scriptTimedOut[url] ? url + (url.indexOf('?') === -1 ? '?' : '&') + 'gg_retry=' + _scriptTimedOut[url] : url;
+        s.onload = function() {
+            clearTimeout(timer);
+            var ok = true;
+            try { ok = !isReady || !!isReady(); } catch (e) { ok = false; }
+            if (ok) { resolve(); return; }
+            _scriptTimedOut[url] = (_scriptTimedOut[url] || 0) + 1;   // next attempt uses a fresh URL, not the bad cached file
+            delete _scriptLoadCache[url];
+            if (s.parentNode) s.parentNode.removeChild(s);
+            var err = new Error('Loaded but not the expected library: ' + url);
+            err.badContent = true;
+            reject(err);
+        };
+        s.onerror = function() {
+            clearTimeout(timer);
+            delete _scriptLoadCache[url];
+            if (s.parentNode) s.parentNode.removeChild(s);
+            reject(new Error('Failed to load ' + url));
+        };
         document.head.appendChild(s);
     });
     return _scriptLoadCache[url];
 }
 async function ensureChartJs() {
     if (window.Chart) return;
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', function() { return !!window.Chart; });
 }
 async function ensurePdfLibs() {
     if (window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.autoTable) return;
-    if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+    if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', function() { return !!(window.jspdf && window.jspdf.jsPDF); });
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', function() { return !!(window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.autoTable); });
 }
 async function ensureTesseract() {
     if (window.Tesseract) return;
-    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', function() { return !!window.Tesseract; });
 }
 
 // GRADE_POINTS is derived from profile.customScale (if set) else the NUC standard scale
@@ -2130,7 +2168,10 @@ async function exportTranscriptPDF() {
     if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF.API.autoTable) {
         toast('Preparing your transcript...', 'info', 2500);
         try { await ensurePdfLibs(); }
-        catch (e) { toast('Could not load the PDF engine. Check your connection and try again.', 'error'); return; }
+        catch (e) {
+            toast(e && e.timedOut ? 'The PDF engine is taking too long to load. Check your connection and try again.' : 'Could not load the PDF engine. Check your connection and try again.', 'error');
+            return;
+        }
     }
     var doc = new window.jspdf.jsPDF();
     var cgpa = calculateCGPA();
@@ -2551,7 +2592,9 @@ async function handleOcrFileSelected(event) {
         await ensureTesseract();
     } catch (e) {
         hideOcrStatus();
-        toast('Could not load the scanner. Check your connection and try again, or use "Paste Grades Instead".', 'error', 6000);
+        toast(e && e.timedOut
+            ? 'The scanner is taking too long to load on this connection. Try again, or use "Paste Grades Instead".'
+            : 'Could not load the scanner. Check your connection and try again, or use "Paste Grades Instead".', 'error', 6000);
         return;
     }
     if (ocrCancelled) return;
@@ -2631,6 +2674,23 @@ function calculateTarget() {
     }
 }
 
+// The chart's own loading / error message, with a Try again button. Only ever shown while the
+// chart library is missing; setChartStatus(null) hides it again.
+function setChartStatus(state, timedOut) {
+    var el = document.getElementById('chartStatus');
+    if (!el) return;
+    if (!state) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'block';
+    if (state === 'loading') {
+        el.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:8px;display:block;opacity:0.5;"></i>Loading your chart...';
+    } else {
+        el.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size:22px;margin-bottom:8px;display:block;opacity:0.5;"></i>' +
+            (timedOut ? 'The chart is taking too long to load.' : "Couldn't load the chart.") +
+            ' Check your connection, then<br><button type="button" class="btn btn-secondary" style="width:auto;padding:8px 16px;margin:10px 0 0;font-size:13px;" onclick="retryChartLoad()">Try again</button>';
+    }
+}
+function retryChartLoad() { renderChart(); }
+
 function renderChart() {
     var canvas = document.getElementById('gpaChart');
     var msg    = document.getElementById('noChartMsg');
@@ -2641,14 +2701,25 @@ function renderChart() {
         // re-run renderChart() once it's ready.
         if (included.length < 2) {
             msg.style.display = 'block'; canvas.style.display = 'none';
+            setChartStatus(null);
             renderGpaProjection(included);
             return;
         }
-        ensureChartJs().then(renderChart).catch(function() {
-            toast('Could not load the chart library. Check your connection and try again.', 'error');
+        // Show that something is happening (instead of a silent blank box) while it loads.
+        msg.style.display = 'none'; canvas.style.display = 'none';
+        setChartStatus('loading');
+        ensureChartJs().then(function() {
+            // Belt and braces: never re-run renderChart unless Chart really exists now (that is
+            // what made a "loaded but empty" file loop forever).
+            if (typeof Chart === 'undefined') throw new Error('Chart library missing after load');
+            renderChart();
+        }).catch(function(e) {
+            msg.style.display = 'none'; canvas.style.display = 'none';
+            setChartStatus('error', e && e.timedOut);
         });
         return;
     }
+    setChartStatus(null);
     if (included.length < 2) {
         msg.style.display = 'block'; canvas.style.display = 'none';
         if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
